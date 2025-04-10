@@ -84,9 +84,9 @@ i lon nasin y la,
     i pi sama mute ala 10 la,
         o ante x kepeken add_one.
     pini.
-pini!
-
-
+pini.
+```
+```
 funtion add_one acts on x,
     return +(x,1).
 Done.
@@ -94,45 +94,56 @@ Done.
 Let x be 5.
 Let y be (x,1,1)
 i in list,
-    
+    if i > 0:
+        print i.
+    Done.
+    if i<=0:
+        Modify i with function add_one.
+    Done.
+Done.
 
 ```
 
 # Grammar
 
-<program> ::=  <statementlist>
-<statementlist> ::= <statement> <statementlist>
-                    | ε
-<statement> ::= <definitionstatement>
-                | <executionstatement>
-<definitionstatement> ::= "function" <identifier> "acts on" <identifierlist> "," <statementlist>, "Done."
-                        | "function" <identifier> "acts on" <identifierlist> "," <statementlist>, "return <identifierlist>." "Done."
-                        | "function" <identifier> "acts on" <identifierlist> "," <statementlist>, "return <operatorlist>." "Done."
-<executionstatement> ::= <assignmentstatement>
-                       | <printstatement>
-                       | <whilestatement>
-                       | <loopstatement>
-                       | <ifstatement>
-                       | <functioncallstatement>
-<assignmentstatement> ::= "Let" <identifier> "be" <value> "."
-<printstatement> ::= "Print" <identifierlist> "."
-<whilestatement> ::= "While" <expression> "is true," <statementlist> "Done."
-<loopstatement> ::= "<identifier> "in list" <identifier> "," <statementlist> "Done."
-<functioncallstatement> ::= "Modify" <identifierlist> "with function" <identifier> "."
-
-
-<expression> ::= <identifier> <operator> <identifier>
-
-<identifierlist> ::= <identifier> "and" <identifierlist>
-                   | <identifier>
-                   | "and" "(" <commaidlist>")
-<operatorlist> ::= <identifier> <operator> <identifier>
-                   | <identifier>
-                   | <operator> "(" <commaidlist> ")"
-<commaidlist> ::= <commaidlist> "," <identifier>   # HERE LEFT REQURSION?
-                   | <identifier>
-<identifier> ::= ".?+"
-
+    <program> ::=  <statementlist>
+    <statementlist> ::= <statement> <statementlist>
+                        | ε
+    <statement> ::= <definitionstatement>
+                    | <executionstatement>
+    <definitionstatement> ::= "function" <identifier> "acts on" <identifierlist> "," <statementlist>, "Done."
+                            | "function" <identifier> "acts on" <identifierlist> "," <statementlist>, "return <identifierlist>." "Done."
+                            | "function" <identifier> "acts on" <identifierlist> "," <statementlist>, "return <operatorlist>." "Done."
+    <executionstatement> ::= <assignmentstatement>
+                           | <printstatement>
+                           | <whilestatement>
+                           | <loopstatement>
+                           | <ifstatement>
+                           | <functioncallstatement>
+    <assignmentstatement> ::= "Let" <identifier> "be" <value> "."
+    <printstatement> ::= "Print" <identifierlist> "."
+    <whilestatement> ::= "While" <expression> "is true," <statementlist> "Done."
+    <loopstatement> ::= "<identifier> "in list" <identifier> "," <statementlist> "Done."
+    <functioncallstatement> ::= "Modify" <identifierlist> "with function" <identifier> "."
+    <ifstatement> :: "If" <expression> "is true," <statementlist> "Done".
+    
+    <expression> ::= <identifier> <operator> <identifier> 
+    		| <identifier>
+                    | <intval>
+    		| <floatval>
+    		| <stringval>
+    <identifierlist> ::= <identifier> "and" <identifierlist>
+                       | <identifier>
+                       | "and" "(" <commaidlist>")
+    <operatorlist> ::= <identifier> <operator> <operatorlist>
+                       | <identifier>
+                       | <operator> "(" <commaidlist> ")"
+    <commaidlist> ::= <commaidlist> "," <identifier>
+                       | <identifier>
+    <identifier> ::= [a-zA-Z]+
+    <intval> ::= [0-9]*
+    <floatval> ::= [0-9]*+\.[0-9]+
+    <stringval> ::= ".*?"
 
 
 
