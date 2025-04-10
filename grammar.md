@@ -106,52 +106,68 @@ Done.
 
 # Grammar
 
-    <program> ::=  <statementlist>
-    <statementlist> ::= <statement> <statementlist>
-                        | ε
-    <statement> ::= <definitionstatement>
-                    | <executionstatement>
-    <definitionstatement> ::= "function" <identifier> "acts on" <identifierlist> "," <statementlist>, "Done."
-                            | "function" <identifier> "acts on" <identifierlist> "," <statementlist>, "return <identifierlist>." "Done."
-                            | "function" <identifier> "acts on" <identifierlist> "," <statementlist>, "return <operatorlist>." "Done."
-    <executionstatement> ::= <assignmentstatement>
-                           | <printstatement>
-                           | <whilestatement>
-                           | <loopstatement>
-                           | <ifstatement>
-                           | <functioncallstatement>
-    <assignmentstatement> ::= "Let" <identifier> "be" <value> "."
-    <printstatement> ::= "Print" <identifierlist> "."
-    <whilestatement> ::= "While" <expression> "is true," <statementlist> "Done."
-    <loopstatement> ::= "<identifier> "in list" <identifier> "," <statementlist> "Done."
-    <functioncallstatement> ::= "Modify" <identifierlist> "with function" <identifier> "."
-    <ifstatement> :: "If" <expression> "is true," <statementlist> "Done".
-    
-    <expression> ::= <identifier> <operator> <identifier> 
-    		| <identifier>
-                    | <intval>
-    		| <floatval>
-    		| <stringval>
-    <identifierlist> ::= <identifier> "and" <identifierlist>
-                       | <identifier>
-                       | "and" "(" <commaidlist>")
-    <operatorlist> ::= <identifier> <operator> <operatorlist>
-                       | <identifier>
-                       | <operator> "(" <commaidlist> ")"
-    <commaidlist> ::= <commaidlist> "," <identifier>
-                       | <identifier>
-    <identifier> ::= [a-zA-Z]+
-    <intval> ::= [0-9]*
-    <floatval> ::= [0-9]*+\.[0-9]+
-    <stringval> ::= ".*?"
+```bnf
 
+<program> ::= <statementlist>
 
+<statementlist> ::= <statement> <statementlist>
+                  | ε
+
+<statement> ::= <definitionstatement>
+              | <executionstatement>
+
+<definitionstatement> ::= "function" <identifier> "acts on" <identifierlist> "," <statementlist> [ "return" <returnvalues> "." ] "Done."
+
+<returnvalues> ::= <identifierlist> | <operatorlist>
+
+<executionstatement> ::= <assignmentstatement>
+                       | <printstatement>
+                       | <whilestatement>
+                       | <loopstatement>
+                       | <ifstatement>
+                       | <functioncallstatement>
+                       | <returnstatement>
+
+<assignmentstatement> ::= "Let" <identifier> "be" <expression> "."
+<printstatement> ::= "Print" <identifierlist> "."
+<whilestatement> ::= "While" <expression> "is true," <statementlist> "Done."
+<loopstatement> ::= "For" <identifier> "in list" <identifier> "," <statementlist> "Done."
+<ifstatement> ::= "If" <expression> "is true," <statementlist> "Done."
+<functioncallstatement> ::= "Modify" <identifierlist> "with function" <identifier> "."
+<returnstatement> ::= "return" <returnvalues> "."
+
+<expression> ::= <expression> <operator> <expression>
+               | <functioncall>
+               | <identifier>
+               | <literal>
+
+<functioncall> ::= <identifier> "(" <expressionlist> ")"
+
+<expressionlist> ::= <expression> "," <expressionlist> | <expression>
+<identifierlist> ::= <identifier> "and" <identifierlist>
+                   | <identifier>
+                   | "and" "(" <commaidlist> ")"
+<operatorlist> ::= <identifier> <operator> <operatorlist>
+                 | <identifier>
+                 | <operator> "(" <commaidlist> ")"
+
+<commaidlist> ::= <identifier> "," <commaidlist>
+                | <identifier>
+
+<operator> ::= "+" | "-" | "*" | "/" | "and" | "or" | "==" | ">" | "<"
+<identifier> ::= [a-zA-Z][a-zA-Z0-9_]*
+<intval> ::= [0-9]+
+<floatval> ::= [0-9]+"."[0-9]+
+<stringval> ::= "\"" .*? "\""
+<literal> ::= <intval> | <floatval> | <stringval>
+
+```
 
 
 ## Ideas
 
-#<expressionlist> ::= <expression> "and" <expressionslist>
-#                   | <expression>
+    #<expressionlist> ::= <expression> "and" <expressionslist>
+    #                   | <expression>
 
 
 
