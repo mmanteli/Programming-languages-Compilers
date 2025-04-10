@@ -136,10 +136,14 @@ Done.
 <functioncallstatement> ::= "Modify" <identifierlist> "with function" <identifier> "."
 <returnstatement> ::= "return" <returnvalues> "."
 
-<expression> ::= <expression> <operator> <expression>
-               | <functioncall>
-               | <identifier>
-               | <literal>
+
+<expression> ::= <term> <expression_tail>
+<term> ::= <functioncall>
+         | <identifier>
+         | <literal>
+         | "[" <expression> "]"
+<expression_tail> ::= <operator> <term> <expression_tail>
+                    | ε
 
 <functioncall> ::= <identifier> "(" <expressionlist> ")"
 
@@ -154,7 +158,7 @@ Done.
 <commaidlist> ::= <identifier> "," <commaidlist>
                 | <identifier>
 
-<operator> ::= "+" | "-" | "*" | "/" | "and" | "or" | "==" | ">" | "<"
+<operator> ::= "+" | "-" | "*" | "/" | "&" | "|" | "==" | ">" | "<"
 <identifier> ::= [a-zA-Z][a-zA-Z0-9_]*
 <intval> ::= [0-9]+
 <floatval> ::= [0-9]+"."[0-9]+
