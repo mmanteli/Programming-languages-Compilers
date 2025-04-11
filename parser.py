@@ -40,7 +40,7 @@ class Assignment:
     def printout(self):
         return f"Let {self.id.printout()} be {self.value.printout()}.\n"
     def translate(self):
-        return f"{self.id.printout()} = {self.value.printout()}\n"
+        return f"{self.id.translate()} = {self.value.translate()}\n"
 
 class IdentifierList:
     pass
@@ -51,7 +51,7 @@ class PrintStatement:
     def printout(self):
         return f"Print {self.val.printout()}.\n"
     def translate(self):
-        return f"print({self.val.printout()})\n"
+        return f"print({self.val.translate()})\n"
 
 class OperatorCommalist:
     def __init__(self, operator, values):
@@ -62,18 +62,32 @@ class OperatorCommalist:
         return f'{self.operator}({",".join([i.printout() for i in self.values])})'
     def translate(self):
         if self.operator == "and":
-            return f'{[i.printout() for i in self.values]}'
+            return f'{[i.translate() for i in self.values]}'
         else:
             return f'{self.operator.join([i.translate() for i in self.values])}'
 
 def parseFunctionCall(t):
+    if debug: print("Now in parseFuntionCall()")
+    pass
+
+def parseTerm():
     pass
 
 def parseExpression(t):
+    ''' <expression> ::= <term> <expression_tail>
+        <term> ::= <functioncall>
+                | <identifier>
+                | <literal>
+                # | "[" <expression> "]"
+        <expression_tail> ::= <operator> <term> <expression_tail>
+                            | ε'''
     if debug: print(f"Now in parseExpression, first token = {t.first()}")
     if t.first() == "VAL":
-        val = t.pop()
-        return Value(val["value"])
+        if t.second != "OPER":
+            val = t.pop()
+            return Value(val["value"])
+        else:
+            pass
     if t.first() == "IDENTIFIER" and t.second() not in ["AND", "OPERATOR"]:
         val = t.pop()
         return Identifier(val["value"])
@@ -86,7 +100,7 @@ def parseExpression(t):
 
 def parseAssignment(t):
     '''<assignmentstatement> ::= "Let" <identifier> "be" <expression> "." '''
-    if debug: print("in parseAssignment")
+    if debug: print("in parseAssignment()")
     assert t.first() == "IDENTIFIER"
     id_val = t.pop()
     id_ = Identifier(id_val["value"])
@@ -98,12 +112,15 @@ def parseAssignment(t):
     assert t.first() == "DOT"
     t.pop()
     #print(id_val["value"], val)
-    print(f"HERE HERE {val.printout()}")
+    print(f"HERE HERE {type(val)}")
     return Assignment(id_, val)
 
 def parseCommaList(t):
     '''<commaidlist> ::= <literal|identifier> "," <commaidlist>
                 | <literal|identifier>'''
+    '''Here we have the parenthesis as well even if they are
+       actually associated with OperatorList and ExpressionList'''
+    if debug: print("Now in parseCommaList()")
     assert t.first() == 'LPAREN', f"Comma list starts with '(', instead got {t.first()}"
     t.pop()
     return_values = []
@@ -121,7 +138,7 @@ def parseCommaList(t):
         if t.first() in ["COMMA"]:
             t.pop()
     t.pop() # remove rparen
-    if debug: f'Returning {[i.printout() for i in return_values]} from parseCommaList()'
+    if debug: print(f'Returning {[i.printout() for i in return_values]} from parseCommaList()')
     return return_values
 
         
@@ -164,9 +181,9 @@ Let z be "hiya".
 """
 
 test_snippet2="""
-Let x be "hei".
 Let c be +(1,1).
-Print x."""
+Let a be 1+1.
+"""
 
 token_stream = Lexer().tokenize(test_snippet2)
 
