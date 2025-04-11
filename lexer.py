@@ -1,5 +1,16 @@
 import re
 
+class TokenStream:
+    def __init__(self, t):
+        self.stream = t
+    def first(self):
+        return self.stream[0]
+    def pop(self):
+        val = self.stream.pop(0)
+        return val
+    def print(self):
+        print(self.stream)
+
 class Lexer:
 # this dict and the list below was done using ChatGPT
 # as I did not bother to make such a long list myself
@@ -54,6 +65,8 @@ class Lexer:
         )
         self.matcher = re.compile(token_regex)
 
+
+
     def tokenize(self, snippet):
 
         # initialize score keepers and return value
@@ -98,32 +111,38 @@ class Lexer:
 
         if not parenthesis_check == 0: raise SyntaxError(f'Unclosed parenthesis on line(s) {",".join([str(i) for i in parenthesis_location])}.')
 
-        return tokens_to_forward
+        return TokenStream(tokens_to_forward)
 
-
-lexer = Lexer()
-test_snippet = """
-function add_one acts on x,
-return +(x,1).
-Done.
-
-Let x be 5.
-Let y be and(x,1,1).
-Let z be "hiya".
-
-For i in list y,
-    if i > 1,
-        print i.
+if __name__=="__main__":
+    lexer = Lexer()
+    test_snippet = """
+    function add_one acts on x,
+    return +(x,1).
     Done.
-    if i<1 or i==1,
-        Modify i with function add_one.
-    Done.
-Done.
 
-Let x be 1.
-While x == 1,
-Let x be +(x,1).
-Done.
-"""
-result = lexer.tokenize(test_snippet)
-print(result)
+    Let x be 5.
+    Let y be and(x,1,1).
+    Let z be "hiya".
+
+    For i in list y,
+        if i > 1,
+            print i.
+        Done.
+        if i<1 or i==1,
+            Modify i with function add_one.
+        Done.
+    Done.
+
+    Let x be 1.
+    While x == 1,
+    Let x be +(x,1).
+    Done.
+    """
+    result = lexer.tokenize(test_snippet)
+    #result.print()
+    print("")
+    print(result.first())
+    first_val = result.pop()
+    print(first_val)
+    print("")
+    result.print()
