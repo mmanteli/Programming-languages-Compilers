@@ -141,7 +141,7 @@ Done.
 <term> ::= <functioncall>
          | <identifier>
          | <literal>
-         | "[" <expression> "]"
+        # | "[" <expression> "]"
 <expression_tail> ::= <operator> <term> <expression_tail>
                     | ε
 
@@ -155,8 +155,8 @@ Done.
                  | <identifier>
                  | <operator> "(" <commaidlist> ")"
 
-<commaidlist> ::= <identifier> "," <commaidlist>
-                | <identifier>
+<commaidlist> ::= <literal|identifier> "," <commaidlist>
+                | <literal|identifier>
 
 <operator> ::= "+" | "-" | "*" | "/" | "&" | "|" | "==" | ">" | "<"
 <identifier> ::= [a-zA-Z][a-zA-Z0-9_]*
