@@ -69,13 +69,13 @@ class Lexer:
 
             # check for errors
             # unrecognized segment was found:
-            assert location[0] == last_index_covered, f'Syntax error on line {line_in_code}, segment "{snippet[last_index_covered:location[0]]}" not recognized.'
+            if not location[0] == last_index_covered: raise SyntaxError(f'Line {line_in_code}: segment "{snippet[last_index_covered:location[0]]}" not recognized.')
             last_index_covered = location[1]
 
             # period or comma missing after \n (not in string)
             if "\n" in matched_segment:
                 if tokens_to_forward != []:
-                    assert tokens_to_forward[-1]["token"] in ["DOT", "COMMA"], f'Syntax error on line {line_in_code}, missing "." or ",".'
+                    if not tokens_to_forward[-1]["token"] in ["DOT", "COMMA"]: raise SyntaxError(f'Line {line_in_code} missing "." or ",".')
             # parenthesis error
             if token in ["LPAREN", "RPAREN"]:
                 if token == "LPAREN":
@@ -83,10 +83,10 @@ class Lexer:
                     parenthesis_location.append(line_in_code)
                 else:
                     parenthesis_check -=1
-                    assert parenthesis_check>=0, f'Syntax error on line {line_in_code}, unclosed parenthesis ")".'
+                    if not parenthesis_check>=0: raise SyntaxError(f'Line {line_in_code}, unclosed parenthesis ")".')
                     parenthesis_location.pop(-1)
             if token in ["DOT"]:
-                assert parenthesis_check == 0, f'Syntax error on line {line_in_code}, missing parenthesis ")"'
+                if not parenthesis_check == 0: raise SyntaxError(f'Line {line_in_code} missing parenthesis ")"')
 
             # put token to return value if no errors are present
             if token not in ["WHITESPACE", "COMMENT"]:
@@ -96,7 +96,7 @@ class Lexer:
             if "\n" in matched_segment:
                 line_in_code += matched_segment.count("\n")
 
-        assert parenthesis_check == 0, f'Syntax error, unclosed parenthesis on line(s) {",".join([str(i) for i in parenthesis_location])}.'
+        if not parenthesis_check == 0: raise SyntaxError(f'Unclosed parenthesis on line(s) {",".join([str(i) for i in parenthesis_location])}.')
 
         return tokens_to_forward
 
