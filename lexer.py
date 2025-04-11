@@ -4,12 +4,16 @@ class TokenStream:
     def __init__(self, t):
         self.stream = t
     def first(self):
-        return self.stream[0]
+        return self.stream[0]["token"]
+    def second(self):
+        return self.stream[1]["token"]
     def pop(self):
         val = self.stream.pop(0)
         return val
     def print(self):
         print(self.stream)
+    def size(self):
+        return len(self.stream)
 
 class Lexer:
 # this dict and the list below was done using ChatGPT
@@ -21,7 +25,7 @@ class Lexer:
             'ACTS':        r'\bacts\b',
             'ON':          r'\bon\b',
             'RETURN':      r'\breturn\b',
-            'DONE':        r'\bDone\.\b',
+            'DONE':        r'\bDone\b',
             'LET':         r'\bLet\b',
             'BE':          r'\bbe\b',
             'PRINT':       r'\bPrint\b',
@@ -55,9 +59,25 @@ class Lexer:
             'STRING':      r'\"([^"\\]|\\.)*\"', 
             'IDENTIFIER':  r'[a-zA-Z_][a-zA-Z0-9_]*',
             'WHITESPACE':  r'[ \t\n]+',  # ignored
-            'COMMENT':     r'\¤.*',
+            'COMMENT':     r'\¤.*', # not yet in grammar
         }
 
+        self.TOKEN_TYPES = {
+            'AND_OP':      "OPER",
+            'OR_OP':       "OPER",
+            'EQEQ':        "OPER",
+            'GT':          "OPER",
+            'LT':          "OPER",
+            'PLUS':        "OPER",
+            'MINUS':       "OPER",
+            'MULT':        "OPER",
+            'DIV':         "OPER",
+            'BITAND':      "OPER",
+            'BITOR':       "OPER",
+            'FLOAT':       "VAL",
+            'INT':         "VAL",
+            'STRING':      "VAL",
+        }
         self.ordered_token_names = [i for i in self.TOKENS.keys()]
 
         token_regex = '|'.join(
@@ -78,7 +98,8 @@ class Lexer:
 
         # loop over segments that match rules (everything should match some rule!)
         for i in self.matcher.finditer(snippet):
-            matched_segment, location, token = i.group(),i.span(), i.lastgroup
+            matched_segment, location, token_rule_name = i.group(),i.span(), i.lastgroup
+            token = self.TOKEN_TYPES.get(token_rule_name, token_rule_name)
 
             # check for errors
             # unrecognized segment was found:
@@ -103,7 +124,7 @@ class Lexer:
 
             # put token to return value if no errors are present
             if token not in ["WHITESPACE", "COMMENT"]:
-                tokens_to_forward.append(dict(token=token, value=matched_segment, span=location, line=line_in_code))
+                tokens_to_forward.append(dict(token=token, type=token_rule_name, value=matched_segment, span=location, line=line_in_code))
 
             # move the line number for error reporting when needed
             if "\n" in matched_segment:

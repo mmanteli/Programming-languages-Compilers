@@ -1,4 +1,5 @@
 from lexer import Lexer
+debug = True
 
 #----------------------ast trying----------------------#
 #import ast
@@ -13,20 +14,42 @@ from lexer import Lexer
 #print(ast.dump(AST))
 #print(ast.unparse(AST))
 #---------------------ast trying-----------------------#
+
+class Identifier:
+    def __init__(self, name):
+        self.name = name
+    def printout(self):
+        return self.name
+    def translate(self):
+        return self.name
+class Value:
+    def __init__(self, val):
+        self.val = val
+    def printout(self):
+        return self.val
+    def translate(self):
+        return self.val
+
 class Assignment:
     def __init__(self, id, val):
         self.id = id
         self.value = val
     def printout(self):
-        print(f"Let {self.id} be {self.value}.\n")
+        return f"Let {self.id.printout()} be {self.value.printout()}.\n"
     def translate(self):
-        print(f"{self.id} == {self.value}\n")
-    
+        return f"{self.id.printout()} == {self.value.printout()}\n"
+
 class IdentifierList:
     pass
 
 class PrintStatement:
-    pass
+    def __init__(self, val):
+        self.val = val
+    def printout(self):
+        return f"Print {self.val.printout()}.\n"
+    def translate(self):
+        return f"print({self.val.printout()})\n"
+
 
 
 def parseExpression(t):
@@ -34,20 +57,33 @@ def parseExpression(t):
 
 def parseAssignment(t):
     '''<assignmentstatement> ::= "Let" <identifier> "be" <expression> "." '''
-    assert t.first == "IDENTIFIER"
+    if debug: print("in parseAssignment")
+    assert t.first() == "IDENTIFIER"
     id = t.pop(0)
-    assert t.first == "BE"
+    assert t.first() == "BE"
     t.pop(0)
     val = parseExpression(t)
     return Assignment(id, val)
 
+
 def parseIdentifierList(t):
-    if t.first in ["+"]:
-        pass
+    '''<identifierlist> ::= <identifier> "and" <identifierlist>
+                   | <identifier>
+                   | "and" "(" <commaidlist> ")"'''
+    if debug: print("in parseIdentifierList()")
+    if t.first() == 'IDENTIFIER' and t.second() != "AND":   # we only have one identifier
+        new_id = t.pop()
+        return Identifier(new_id["value"])
+    
 
 def parsePrintStmt(t):
     '''<printstatement> ::= "Print" <identifierlist> "."'''
-    t = parseIdentifierList(t)
+    if debug: print("in parsePrintStmt()")
+    new_id = parseIdentifierList(t)
+    if t.first() == 'DOT':
+        dot = t.pop()
+        if debug: print(f"Returning a new printstatement")
+        return PrintStatement(new_id)
 
 
 test_snippet = """
@@ -60,17 +96,27 @@ Let y be and(x,1,1).
 Let z be "hiya".
 """
 
-test_snippet2="Print x."
+test_snippet2="""
+Print x."""
 
 token_stream = Lexer().tokenize(test_snippet2)
 
-
-while len(token_stream) > 0:
-    if token_stream.first == "LET":
+parsed = []
+while token_stream.size() > 0:
+    if debug: print("At the start with")
+    if debug: token_stream.print()
+    if token_stream.first() == "LET":
         token_stream.pop()
-        parseAssignment(token_stream)
-    elif token_stream.first == "PRINT":
+        t = parseAssignment(token_stream)
+    elif token_stream.first() == "PRINT":
         token_stream.pop()
-        parsePrintStmt(token_stream)
+        t = parsePrintStmt(token_stream)
     else:
         raise SyntaxError(f"I do not know what I'm doing")
+    print(f'appending {t.printout()}')
+    parsed.append(t)
+
+
+print("RESULT FINALLY HERE WOO")
+print(parsed[0].printout())
+print(parsed[0].translate())
