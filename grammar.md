@@ -116,8 +116,8 @@ Done.
 <statement> ::= <definitionstatement>
               | <executionstatement>
 
-<definitionstatement> ::= "function" <identifier> "acts on" <operatorlist> "," <statementlist> [ "return" <returnvalues> "." ] "Done."
-<returnvalues> ::= <operatorlist>
+<definitionstatement> ::= "function" <identifier> "acts on" <operatorlist> "," <statementlist> [ "return" <operatorlist> "." ] "Done."
+
 
 <executionstatement> ::= <assignmentstatement>
                        | <printstatement>

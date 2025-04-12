@@ -178,7 +178,7 @@ def parseFunctionCall(t):
     # "modify" should be removed already
     params = parseOperatorList(t)
     assert t.first() == "WITH" 
-    if t.second() == "FUNCTION":
+    if t.second() == "FUNCTION":  # TODO HERE
         t.pop()
     t.pop()
     function_name = parseOperant(t)
