@@ -1,4 +1,5 @@
 from lexer import Lexer
+OPERANTS = ["IDENTIFIER","VAL", "MODIFY"]
 debug = True
 
 #----------------------ast trying----------------------#
@@ -30,20 +31,54 @@ class Value:
         return self.val
     def translate(self):
         return self.val
+    
+class ExpressionTail:
+    def __init__(self, oper, term, tail):
+        assert oper is not None, "No operator given for ExpressionTail"
+        assert term is not None, "No term given for ExpressionTail"
+        self.oper = oper
+        self.term = term
+        self.tail = tail
+        print(f"Doing a expression tail. Values were of type \n {type(self.oper)}, \n {type(self.term)}, \n {type(self.tail)}")
+    def printout(self):
+        if self.tail is None:
+            return f'{self.oper}{self.term.printout()}'
+        else:
+            return f'{self.oper}{self.term.printout()}{self.tail.printout()}'
+    def translate(self):
+        if self.tail is None:
+            return f'{self.oper}{self.term.translate()}'
+        else:
+            return f'{self.oper}{self.term.translate()}{self.tail.translate()}'
+
+
+class Expression:
+    def __init__(self, term, tail):
+        assert term is not None
+        self.term = term
+        self.tail = tail 
+    def printout(self):
+        if self.tail is None:
+            return f"{self.term.printout()}"
+        else:
+            return f"{self.term.printout()} {self.tail.printout()}"
+    def translate(self):
+        if self.tail is None:
+            return f"{self.term.translate()}"
+        else:
+            return f"{self.term.translate()} {self.tail.translate()}"
 
 class Assignment:
     def __init__(self, id_, val):
-        assert isinstance(id_, Identifier), "Tried to make non-identifier left in assignment"
+        assert isinstance(id_, Identifier), "Tried to put non-identifier in left position in assignment"
         self.id = id_
-        assert isinstance(val, Value) or isinstance(val, Identifier) or isinstance(val, OperatorCommalist), f"Assigning non-value ({val.printout()}) to an identifier"
+        #assert isinstance(val, Value) or isinstance(val, Identifier) or isinstance(val, OperatorCommalist), f"Assigning prohibited value ({val.printout()}) to an identifier"
+        assert isinstance(val, Expression), f"Tried to assing non-expression to the right.S"
         self.value = val
     def printout(self):
         return f"Let {self.id.printout()} be {self.value.printout()}.\n"
     def translate(self):
         return f"{self.id.translate()} = {self.value.translate()}\n"
-
-class IdentifierList:
-    pass
 
 class PrintStatement:
     def __init__(self, val):
@@ -65,23 +100,79 @@ class OperatorCommalist:
             return f'{[i.translate() for i in self.values]}'
         else:
             return f'{self.operator.join([i.translate() for i in self.values])}'
+        
+
+def parseOperant(t):
+    '''<operant> :: <literal> | <identifier | <functioncallstatement>'''
+    if debug: print(f'In parseOperant() with {t.first()}')
+    if t.first() == "IDENTIFIER":
+        if debug: print(f'In parseOperant(), identifier found')
+        new_id = t.pop()
+        return Identifier(new_id["value"])
+    elif t.first() == "MODIFY":
+        if debug: print(f'In parseOperant(), function call found')
+        t.pop()
+        return parseFunctionCall(t)
+    elif t.first() == "VAL":
+        if debug: print(f"In parseOperant(), Value found {t.first()}")
+        val = t.pop()
+        return Value(val["value"])
+    print("SHould not be here")
 
 def parseFunctionCall(t):
     if debug: print("Now in parseFuntionCall()")
+    # "modify" should be removed already
+    assert t.first() == "MODIFY", "tried parsefunctioncall without modify"
+    values = parseOperatorList(t)
+
     pass
 
-def parseTerm():
-    pass
+
+
+    
 
 def parseExpression(t):
-    ''' <expression> ::= <term> <expression_tail>
-        <term> ::= <functioncall>
-                | <identifier>
-                | <literal>
-                # | "[" <expression> "]"
-        <expression_tail> ::= <operator> <term> <expression_tail>
-                            | ε'''
-    if debug: print(f"Now in parseExpression, first token = {t.first()}")
+    '''
+    <expression> ::= <term> <expression_tail>
+    <term> ::= <functioncallstatement>
+            | <operatorlist>
+            | <operant>
+    <expression_tail> ::= <operator> <term> <expression_tail>
+                        | ε
+    '''
+
+    def parseExpressionTail(t):
+        if debug: print(f"In expression tail, first = {t.first()}")
+        if t.first() == "OPER":
+            oper = t.pop()
+            term = parseTerm(t)
+            tail = parseExpressionTail(t)
+            if debug: print(f'Returning expressiontail with {oper["value"]}, {term.printout()}')
+            return ExpressionTail(oper["value"], term, tail)
+
+    def parseTerm(t):
+        print(f"in parseTerm() with {t.first()}")
+        if t.first() == "MODIFY":
+            return parseFunctionCall(t)
+        elif t.first() == "OPER":
+            return parseOperatorList(t)
+        elif t.first() in OPERANTS:
+            return parseOperant(t)
+        print(f'Should not be here!!')
+        
+    if debug: print(f"Now in parseExpression, first token = {t.first()}, second token = {t.second()}")
+    term = parseTerm(t)
+    print("WE HERE?")
+    print(f"{term.printout()}")
+    print("MOVING toward expressiong tail with ")
+    t.print()
+    print("")
+    print("NEXT LINE SHOULD BE PARSING TAIL WHY IS IT NOT")
+    tail = parseExpressionTail(t)
+    return Expression(term, tail)
+
+
+    """
     if t.first() == "VAL":
         if t.second != "OPER":
             val = t.pop()
@@ -97,29 +188,26 @@ def parseExpression(t):
     elif t.first() == "OPER" and t.second() == 'LPAREN':
         op = t.pop()
         return OperatorCommalist(op["value"], parseCommaList(t))
-
+    """
 def parseAssignment(t):
-    '''<assignmentstatement> ::= "Let" <identifier> "be" <expression> "." '''
+    '''<assignmentstatement> ::= "Let" <identifier> "be" <expression> "."'''
     if debug: print("in parseAssignment()")
     assert t.first() == "IDENTIFIER"
-    id_val = t.pop()
-    id_ = Identifier(id_val["value"])
+    #id_val = t.pop()
+    id_ = parseOperant(t)
     if debug: print(f"Identifier {id_.printout()} parsed.")
     assert t.first() == "BE"
     t.pop()
     val = parseExpression(t)
-    if debug: print(f"Value {val.printout()} parsed.")
-    assert t.first() == "DOT"
+    print("WE MADE IT BOYTS")
+    assert t.first() == "DOT", f"Expected DOT, got {t.first()}"
     t.pop()
-    #print(id_val["value"], val)
-    print(f"HERE HERE {type(val)}")
+    if debug: f"Returning assignment"
     return Assignment(id_, val)
 
 def parseCommaList(t):
-    '''<commaidlist> ::= <literal|identifier> "," <commaidlist>
-                | <literal|identifier>'''
-    '''Here we have the parenthesis as well even if they are
-       actually associated with OperatorList and ExpressionList'''
+    '''<commalist> ::= "(" <operant> "," <commaidlist> ")"
+              | <operant> '''
     if debug: print("Now in parseCommaList()")
     assert t.first() == 'LPAREN', f"Comma list starts with '(', instead got {t.first()}"
     t.pop()
@@ -143,27 +231,31 @@ def parseCommaList(t):
 
         
 
-def parseIdentifierList(t):
-    '''<identifierlist> ::= <identifier> "and" <identifierlist>
-                   | <identifier>
-                   | "and" "(" <commaidlist> ")"'''
-    if debug: print("in parseIdentifierList()")
-    if t.first() == 'IDENTIFIER' and t.second() != "AND":   # we only have one identifier
+def parseOperatorList(t):
+    '''
+    <operatorlist> ::= <operant> <operator> <operatorlist>
+                    | <operant>
+                    | <operator> <commaidlist> 
+    '''
+    if debug: print(f"in parseOperatorList(), first = {t.first()}")
+    if t.first() in OPERANTS and t.second() != "OPER":
+        if debug: print("goint to parseoperant")
+        return parseOperant(t)
+    elif t.first() == "OPER":
+        op = t.pop()
+        if debug: print("going to parse commalist and after returning new operatorcommalist")
+        return OperatorCommalist(op["value"], parseCommaList(t))
+    elif t.first() in OPERANTS and t.second() == "OPER":
         new_id = t.pop()
-        return Identifier(new_id["value"])
-    elif t.first() == "and":
-        and_ = t.pop(0)
-        return OperatorCommalist(and_, parseCommaList(t))
-    elif t.first() == 'IDENTIFIER' and t.second() == "AND":
-        new_id = t.pop()
-        return Identifier(new_id), parseIdentifierList(t)
+        if debug: print("returning new value plut continuih parsing")
+        return Identifier(new_id["value"]), parseOperatorList(t)
     
     
 
 def parsePrintStmt(t):
     '''<printstatement> ::= "Print" <identifierlist> "."'''
     if debug: print("in parsePrintStmt()")
-    new_id = parseIdentifierList(t)
+    new_id = parseOperatorList(t)
     if t.first() == 'DOT':
         dot = t.pop()
         if debug: print(f"Returning a new printstatement")
@@ -181,8 +273,9 @@ Let z be "hiya".
 """
 
 test_snippet2="""
-Let c be +(1,1).
-Let a be 1+1.
+Let c be +(1,1, "moi")-1.
+Let x be 1+1.
+Print x.
 """
 
 token_stream = Lexer().tokenize(test_snippet2)
