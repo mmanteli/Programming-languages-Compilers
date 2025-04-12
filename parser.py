@@ -112,6 +112,16 @@ class OperatorCommalist:
         else:
             return f'{self.operator.join([i.translate() for i in self.values])}'
 
+class FunctionCall:
+    def __init__(self, name, params):
+        assert isinstance(name, Identifier)
+        self.name=name
+        self.params=params
+    def printout(self):
+        return f'Modify {self.params.printout()} with function {self.name.printout()}.\n'
+    def translate(self):
+        return f'{self.name.translate()}({self.params.translate()})\n'
+        
 
 class FunctionDefinition:
     def __init__(self, name, params, block, return_values=None):
@@ -161,12 +171,20 @@ def parseOperant(t):
     raise SyntaxError("Should not reach this, parseOperant with no operant in sight.")
 
 def parseFunctionCall(t):
+    '''
+    <functioncallstatement> ::= "Modify" <operatorlist> "with" <identifier> "."    # TODO Function vs function problem
+    '''
     if debug: print("Now in parseFuntionCall()")
     # "modify" should be removed already
-    assert t.first() == "MODIFY", "tried parsefunctioncall without modify"
-    values = parseOperatorList(t)
-
-    pass
+    params = parseOperatorList(t)
+    assert t.first() == "WITH" 
+    if t.second() == "FUNCTION":
+        t.pop()
+    t.pop()
+    function_name = parseOperant(t)
+    assert t.first() == "DOT"
+    t.pop()
+    return FunctionCall(function_name, params)
 
 
 
@@ -304,6 +322,9 @@ def parseExecutionStatement(t):
     elif t.first() == "PRINT":
         t.pop()
         return parsePrintStmt(t)
+    elif t.first() == "MODIFY":
+        t.pop()
+        return parseFunctionCall(t)
     else:
         raise SyntaxError(f"I do not know what I'm doing")
 
@@ -343,10 +364,12 @@ def parseDefinitionStatement(t):
     
     
 
-
-
-
 test_snippet = """
+Modify x with Function somename.
+"""
+
+
+test_snippet6 = """
 function add_one acts on x,
 return +(x,1).
 Done.
@@ -366,6 +389,7 @@ Return x.
 Done.
 
 Let x be 1.
+Modify x with somename.
 Print x. """
 test_snippet3="""
 Let c be +(1,1, "moi") - +(1,2).
