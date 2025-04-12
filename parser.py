@@ -42,13 +42,17 @@ class ExpressionTail:
         print(f"Doing a expression tail. Values were of type \n {type(self.oper)}, \n {type(self.term)}, \n {type(self.tail)}")
     def printout(self):
         if self.tail is None:
-            return f'{self.oper}{self.term.printout()}'
+            return f'{self.oper} {self.term.printout()}'
         else:
-            return f'{self.oper}{self.term.printout()}{self.tail.printout()}'
+            return f'{self.oper} {self.term.printout()}{self.tail.printout()}'
     def translate(self):
         if self.tail is None:
+            if self.oper == "and":
+                return f',{self.term.translate()}]'
             return f'{self.oper}{self.term.translate()}'
         else:
+            if self.oper == "and":
+                return f',{self.term.translate()},{self.tail.translate()}'
             return f'{self.oper}{self.term.translate()}{self.tail.translate()}'
 
 
@@ -66,6 +70,8 @@ class Expression:
         if self.tail is None:
             return f"{self.term.translate()}"
         else:
+            if self.tail.oper == "and":
+                return f'[{self.term.translate()}{self.tail.translate()}'
             return f"{self.term.translate()} {self.tail.translate()}"
 
 class Assignment:
@@ -143,12 +149,15 @@ def parseExpression(t):
 
     def parseExpressionTail(t):
         if debug: print(f"In expression tail, first = {t.first()}")
-        if t.first() == "OPER":
+        if t.first() == "OPER" and t.second() is not "LPAREN":
             oper = t.pop()
             term = parseTerm(t)
             tail = parseExpressionTail(t)
             if debug: print(f'Returning expressiontail with {oper["value"]}, {term.printout()}')
             return ExpressionTail(oper["value"], term, tail)
+        if t.first() == "OPER" and t.second() == "LPAREN":
+            oper = t.pop()
+            return OperatorCommalist(oper["value"], t)
 
     def parseTerm(t):
         print(f"in parseTerm() with {t.first()}")
@@ -172,23 +181,6 @@ def parseExpression(t):
     return Expression(term, tail)
 
 
-    """
-    if t.first() == "VAL":
-        if t.second != "OPER":
-            val = t.pop()
-            return Value(val["value"])
-        else:
-            pass
-    if t.first() == "IDENTIFIER" and t.second() not in ["AND", "OPERATOR"]:
-        val = t.pop()
-        return Identifier(val["value"])
-    elif t.first() == "MODIFY":
-        t.pop()
-        return parseFunctionCall()
-    elif t.first() == "OPER" and t.second() == 'LPAREN':
-        op = t.pop()
-        return OperatorCommalist(op["value"], parseCommaList(t))
-    """
 def parseAssignment(t):
     '''<assignmentstatement> ::= "Let" <identifier> "be" <expression> "."'''
     if debug: print("in parseAssignment()")
@@ -271,10 +263,13 @@ Let x be 5.
 Let y be and(x,1,1).
 Let z be "hiya".
 """
-
 test_snippet2="""
-Let c be +(1,1, "moi")-1.
-Let x be 1+1.
+Let a be 1 and 2.
+Let b be and(1,3).
+"""
+test_snippet3="""
+Let c be +(1,1, "moi") - +(1,2).
+Let x be -(1,2).
 Print x.
 """
 

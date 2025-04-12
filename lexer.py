@@ -74,6 +74,7 @@ class Lexer:
             'DIV':         "OPER",
             'BITAND':      "OPER",
             'BITOR':       "OPER",
+            'AND':         "OPER",
             'FLOAT':       "VAL",
             'INT':         "VAL",
             'STRING':      "VAL",
