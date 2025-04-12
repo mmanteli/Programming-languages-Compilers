@@ -24,13 +24,19 @@ class Identifier:
     def translate(self):
         return self.name
 
+value_map = {"STRING": str,
+             "INT": int,
+             "FLOAT": float,
+             }
 class Value:
-    def __init__(self, val):
+    def __init__(self, val, typ="STRING"):
         self.val = val
+        self.type = typ
+        self.pythontype = value_map.get(typ, str)
     def printout(self):
         return self.val
     def translate(self):
-        return self.val
+        return self.pythontype(self.val)
     
 class ExpressionTail:
     def __init__(self, oper, term, tail):
@@ -122,7 +128,7 @@ def parseOperant(t):
     elif t.first() == "VAL":
         if debug: print(f"In parseOperant(), Value found {t.first()}")
         val = t.pop()
-        return Value(val["value"])
+        return Value(val["value"], typ=val["type"])
     print("SHould not be here")
 
 def parseFunctionCall(t):
@@ -211,7 +217,7 @@ def parseCommaList(t):
             if debug: print(f'Identifier {return_values[-1].printout()} added to parsing list')
         elif t.first() == "VAL":
             new_val = t.pop()
-            return_values.append(Value(new_val["value"]))
+            return_values.append(Value(new_val["value"], typ=new_val["type"]))
             if debug: print(f'Value {return_values[-1].printout()} added to parsing list')
         else: raise SyntaxError(f"Only literal or identifier inside (...), found {t.first()}")
         assert t.first() in ["COMMA", 'RPAREN'], "This error should not happen, we checked this in the lexer"
@@ -272,6 +278,8 @@ Let c be +(1,1, "moi") - +(1,2).
 Let x be -(1,2).
 Print x.
 """
+
+test_snippet4="Let x be -(0,1)."
 
 token_stream = Lexer().tokenize(test_snippet2)
 
