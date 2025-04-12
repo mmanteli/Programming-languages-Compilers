@@ -116,9 +116,8 @@ Done.
 <statement> ::= <definitionstatement>
               | <executionstatement>
 
-<definitionstatement> ::= "function" <identifier> "acts on" <identifierlist> "," <statementlist> [ "return" <returnvalues> "." ] "Done."
-
-<returnvalues> ::= <identifierlist> | <operatorlist>
+<definitionstatement> ::= "function" <identifier> "acts on" <operatorlist> "," <statementlist> [ "return" <returnvalues> "." ] "Done."
+<returnvalues> ::= <operatorlist>
 
 <executionstatement> ::= <assignmentstatement>
                        | <printstatement>
@@ -129,36 +128,29 @@ Done.
                        | <returnstatement>
 
 <assignmentstatement> ::= "Let" <identifier> "be" <expression> "."
-<printstatement> ::= "Print" <identifierlist> "."
+<printstatement> ::= "Print" <operatorlist> "."
 <whilestatement> ::= "While" <expression> "is true," <statementlist> "Done."
-<loopstatement> ::= "For" <identifier> "in list" <identifier> "," <statementlist> "Done."
+<loopstatement> ::= "For" <identifier> "in list" <operatorlist> "," <statementlist> "Done."
 <ifstatement> ::= "If" <expression> "is true," <statementlist> "Done."
-<functioncallstatement> ::= "Modify" <identifierlist> "with function" <identifier> "."
+<functioncallstatement> ::= "Modify" <operatorlist> "with function" <identifier> "."
 <returnstatement> ::= "return" <returnvalues> "."
 
-
 <expression> ::= <term> <expression_tail>
-<term> ::= <functioncall>
-         | <identifier>
-         | <literal>
-        # | "[" <expression> "]"
+<term> ::= <functioncallstatement>
+         | <operatorlist>
+         | <operant>
 <expression_tail> ::= <operator> <term> <expression_tail>
                     | ε
 
-<functioncall> ::= <identifier> "(" <expressionlist> ")"
+<operatorlist> ::= <operant> <operator> <operatorlist>
+                 | <operant>
+                 | <operator> <commaidlist> 
 
-<expressionlist> ::= <expression> "," <expressionlist> | <expression>
-<identifierlist> ::= <identifier> "and" <identifierlist>
-                   | <identifier>
-                   | "and" "(" <commaidlist> ")"
-<operatorlist> ::= <identifier> <operator> <operatorlist>
-                 | <identifier>
-                 | <operator> "(" <commaidlist> ")"
+<commalist> ::= "(" <operant> "," <commaidlist> ")"
+              | <operant> 
+<operant> :: <literal> | <identifier | <functioncallstatement>
 
-<commaidlist> ::= <literal|identifier> "," <commaidlist>
-                | <literal|identifier>
-
-<operator> ::= "+" | "-" | "*" | "/" | "&" | "|" | "==" | ">" | "<"
+<operator> ::= "+" | "-" | "*" | "/" | "&" | "|" | "==" | ">" | "<" | "and" 
 <identifier> ::= [a-zA-Z][a-zA-Z0-9_]*
 <intval> ::= [0-9]+
 <floatval> ::= [0-9]+"."[0-9]+
