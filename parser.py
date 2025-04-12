@@ -1,6 +1,6 @@
 from lexer import Lexer
 OPERANTS = ["IDENTIFIER","VAL", "MODIFY"]
-debug = False
+debug = True
 
 #----------------------ast trying----------------------#
 #import ast
@@ -111,7 +111,37 @@ class OperatorCommalist:
             return f'{[i.translate() for i in self.values]}'
         else:
             return f'{self.operator.join([i.translate() for i in self.values])}'
-        
+
+
+class FunctionDefinition:
+    def __init__(self, name, params, block, return_values=None):
+        self.name = name
+        self.params = params
+        self.block = block
+        self.return_values = return_values
+    def printout(self):
+        if self.return_values:
+            return f"""Function {self.name.printout()} acts on {self.params.printout()},
+                    {[i.printout() for i in self.block]}
+                    Return {self.return_values.printout()}.
+                    Done.
+                    """
+        else:
+            return f"""Function {self.name.printout()} acts on {self.params.printout()},
+                    {[i.printout() for i in self.block]}
+                    Done.
+                    """
+    def translate(self):
+        if self.return_values:
+            return f"""def {self.name.translate()}({self.params.translate()}):,
+                    {[i.translate() for i in self.block]}
+                    return {self.return_values.translate()}
+                    """
+        else:
+            return f"""def {self.name.translate()}({self.params.translate()}):,
+                    {[i.translate() for i in self.block]}
+                    """
+
 
 def parseOperant(t):
     '''<operant> :: <literal> | <identifier | <functioncallstatement>'''
@@ -255,6 +285,67 @@ def parsePrintStmt(t):
         return PrintStatement(new_id)
 
 
+
+
+def parseExecutionStatement(t):
+    '''
+     <executionstatement> ::= <assignmentstatement>
+                            | <printstatement>
+                            | <whilestatement>
+                            | <loopstatement>
+                            | <ifstatement>
+                            | <functioncallstatement>
+                            | <returnstatement>
+    '''
+    if debug: print(f"parsing an Execution Statement, top of stream is {t.first()}")
+    if t.first() == "LET":
+        t.pop()
+        return parseAssignment(t)
+    elif t.first() == "PRINT":
+        t.pop()
+        return parsePrintStmt(t)
+    else:
+        raise SyntaxError(f"I do not know what I'm doing")
+
+def parseDefinitionStatement(t):
+    '''
+    <definitionstatement> ::= "function" <identifier> "acts on" <operatorlist> "," <statementlist> [ "return" <operatorlist> "." ] "Done."
+    '''
+    assert t.first() == "IDENTIFIER"
+    new_id = t.pop()
+    new_id = Identifier(new_id["value"])
+    assert t.first() == "ACTS" and t.second() == "ON"
+    t.pop()
+    t.pop()
+    opers = parseOperatorList(t)
+    block = []
+    assert t.first() == "COMMA"
+    t.pop()
+    while t.first() not in ["RETURN", "DONE"]:
+        if token_stream.first == "FUNCTION":
+            token_stream.pop()
+            stmt = parseDefinitionStatement(token_stream)
+        else:
+            if debug: print(f'Parsing Execution inside Function definition, top of stream is {t.first()}')
+            stmt = parseExecutionStatement(token_stream)
+        if debug: print(f'appending inside function {stmt.printout()}')
+        block.append(stmt)
+        if debug: print(f'Appended, now stream first and second are {t.first()}, {t.second()}')
+    if t.first() == "RETURN":
+        t.pop() # take return away
+        return_value = parseOperatorList(t)
+        t.pop(); t.pop(); t.pop()# take away dot and Done .
+        if debug: print(f'Returning a new function definition')
+        return FunctionDefinition(new_id, opers, block, return_values=return_value)
+    t.pop(); t.pop(); t.pop() # Remove . and  Done .
+    if debug: print(f'Returning a new function definition')
+    return FunctionDefinition(new_id, opers, block)
+    
+    
+
+
+
+
 test_snippet = """
 function add_one acts on x,
 return +(x,1).
@@ -264,10 +355,18 @@ Let x be 5.
 Let y be and(x,1,1).
 Let z be "hiya".
 """
-test_snippet2="""
+test_snippet5="""
 Let a be 1 and 2.
 Let b be and(1,3).
 """
+test_snippet2="""
+Function somename acts on x,
+Let x be x+1.
+Return x.
+Done.
+
+Let x be 1.
+Print x. """
 test_snippet3="""
 Let c be +(1,1, "moi") - +(1,2).
 Let x be -(1,2).
@@ -277,27 +376,25 @@ Print x.
 test_snippet4="Let x be -(0,1)."
 
 token_stream = Lexer().tokenize(test_snippet2)
+token_stream.print()
 
-parsed = []
+
+StatementList= []
 while token_stream.size() > 0:
-    if debug: print("New round, baby")
-    if token_stream.first() == "LET":
+    if token_stream.first() == "FUNCTION":
         token_stream.pop()
-        t = parseAssignment(token_stream)
-    elif token_stream.first() == "PRINT":
-        token_stream.pop()
-        t = parsePrintStmt(token_stream)
+        t = parseDefinitionStatement(token_stream)
     else:
-        raise SyntaxError(f"I do not know what I'm doing")
+        t = parseExecutionStatement(token_stream)
     if debug: print(f'appending {t.printout()}')
-    parsed.append(t)
+    StatementList.append(t)
 
 
 print("\nRESULT:")
 print("---------My language-----------")
-for p in parsed:
+for p in StatementList:
     print(p.printout(), end="")
 print("-----------Python--------------")
-for p in parsed:
+for p in StatementList:
     print(p.translate(), end="")
 print("-------------------------------")

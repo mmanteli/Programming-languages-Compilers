@@ -21,10 +21,10 @@ class Lexer:
     def __init__(self):
 
         self.TOKENS = {
-            'FUNCTION':    r'\bfunction\b',
+            'FUNCTION':    r'\bFunction\b',
             'ACTS':        r'\bacts\b',
             'ON':          r'\bon\b',
-            'RETURN':      r'\breturn\b',
+            'RETURN':      r'\bReturn\b',
             'DONE':        r'\bDone\b',
             'LET':         r'\bLet\b',
             'BE':          r'\bbe\b',
