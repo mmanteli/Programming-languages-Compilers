@@ -1,6 +1,6 @@
 from lexer import Lexer
 OPERANTS = ["IDENTIFIER","VAL", "MODIFY"]
-debug = True
+debug = False
 
 #----------------------ast trying----------------------#
 #import ast
@@ -45,7 +45,6 @@ class ExpressionTail:
         self.oper = oper
         self.term = term
         self.tail = tail
-        print(f"Doing a expression tail. Values were of type \n {type(self.oper)}, \n {type(self.term)}, \n {type(self.tail)}")
     def printout(self):
         if self.tail is None:
             return f'{self.oper} {self.term.printout()}'
@@ -129,7 +128,7 @@ def parseOperant(t):
         if debug: print(f"In parseOperant(), Value found {t.first()}")
         val = t.pop()
         return Value(val["value"], typ=val["type"])
-    print("SHould not be here")
+    raise SyntaxError("Should not reach this, parseOperant with no operant in sight.")
 
 def parseFunctionCall(t):
     if debug: print("Now in parseFuntionCall()")
@@ -155,7 +154,7 @@ def parseExpression(t):
 
     def parseExpressionTail(t):
         if debug: print(f"In expression tail, first = {t.first()}")
-        if t.first() == "OPER" and t.second() is not "LPAREN":
+        if t.first() == "OPER" and t.second() != "LPAREN":
             oper = t.pop()
             term = parseTerm(t)
             tail = parseExpressionTail(t)
@@ -166,24 +165,21 @@ def parseExpression(t):
             return OperatorCommalist(oper["value"], t)
 
     def parseTerm(t):
-        print(f"in parseTerm() with {t.first()}")
+        if debug: print(f"in parseTerm() with {t.first()}")
         if t.first() == "MODIFY":
             return parseFunctionCall(t)
         elif t.first() == "OPER":
             return parseOperatorList(t)
         elif t.first() in OPERANTS:
             return parseOperant(t)
-        print(f'Should not be here!!')
+        raise SyntaxError(f'YOU SHOULD NOT REACH THIS EVER: IN parseTerm() without a term.')
         
     if debug: print(f"Now in parseExpression, first token = {t.first()}, second token = {t.second()}")
     term = parseTerm(t)
-    print("WE HERE?")
-    print(f"{term.printout()}")
-    print("MOVING toward expressiong tail with ")
-    t.print()
-    print("")
-    print("NEXT LINE SHOULD BE PARSING TAIL WHY IS IT NOT")
+    if debug: print("MOVING toward expressiong tail with ")
+    if debug: t.print()
     tail = parseExpressionTail(t)
+    if debug: print("Returning an Expression.")
     return Expression(term, tail)
 
 
@@ -197,7 +193,6 @@ def parseAssignment(t):
     assert t.first() == "BE"
     t.pop()
     val = parseExpression(t)
-    print("WE MADE IT BOYTS")
     assert t.first() == "DOT", f"Expected DOT, got {t.first()}"
     t.pop()
     if debug: f"Returning assignment"
@@ -286,7 +281,6 @@ token_stream = Lexer().tokenize(test_snippet2)
 parsed = []
 while token_stream.size() > 0:
     if debug: print("New round, baby")
-    #if debug: token_stream.print()
     if token_stream.first() == "LET":
         token_stream.pop()
         t = parseAssignment(token_stream)
@@ -295,11 +289,11 @@ while token_stream.size() > 0:
         t = parsePrintStmt(token_stream)
     else:
         raise SyntaxError(f"I do not know what I'm doing")
-    print(f'appending {t.printout()}')
+    if debug: print(f'appending {t.printout()}')
     parsed.append(t)
 
 
-print("RESULT FINALLY HERE WOO")
+print("\nRESULT:")
 print("---------My language-----------")
 for p in parsed:
     print(p.printout(), end="")
