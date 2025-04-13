@@ -121,10 +121,12 @@ class IfStatement:
     def printout(self):
         return f"""If {self.expr.printout()} is true,
         {[i.printout() for i in self.block]}
-Done."""
+Done.
+"""
     def translate(self):
         return f"""if {self.expr.translate()}:
-        {[i.translate() for i in self.block]}"""
+        {[i.translate() for i in self.block]}
+"""
 
 class WhileStatement:
     def __init__(self, expr, block):
@@ -134,11 +136,28 @@ class WhileStatement:
     def printout(self):
         return f"""While {self.expr.printout()} is true,
         {[i.printout() for i in self.block]}
-Done."""
+Done.
+"""
     def translate(self):
         return f"""While {self.expr.translate()}:
-        {[i.translate() for i in self.block]}"""
+        {[i.translate() for i in self.block]}
+"""
 
+class ForStatement:
+    def __init__(self, looper, loopee, block):
+        self.looper = looper
+        self.loopee = loopee
+        self.block = block
+    def printout(self):
+        return f"""For {self.looper.printout()} in list {self.loopee.printout()},
+        {[i.printout() for i in self.block]}
+Done.
+"""
+    def translate(self):
+        return f"""for {self.looper.translate()} in {self.loopee.translate()},
+        {[i.translate() for i in self.block]}
+"""
+        
 
 class FunctionCall:
     def __init__(self, name, params):
@@ -353,7 +372,8 @@ def parseExecutionStatement(t):
         t.pop()
         return parseWhileStatement(t)
     elif t.first() == "FOR":
-        pass
+        t.pop()
+        return parseForStatement(t)
     elif t.first() == "IF":
         t.pop()
         return parseIfStatement(t)
@@ -376,6 +396,25 @@ def parseBlock(t):
         block.append(stmt)
         if debug: print(f'Appended, now stream first and second are {t.first()}, {t.second()}')
     return block
+
+def parseForStatement(t):
+    '''<loopstatement> ::= "For" <identifier> "in list" <operatorlist|identifier> "," <statementlist> "Done."'''
+    if debug: print("In parseForStatement")
+    new_id = parseOperant(t)
+    assert isinstance(new_id, Identifier), "Non-identifier as loop argument."
+    if debug: print("Looping variable parsed")
+    assert t.first() == "IN" and t.second() == "LIST", "Loop not containing keywords 'in list'."
+    t.pop(); t.pop()
+    if t.first() == "IDENTIFIER":
+        oplist = parseOperant(t)
+    else:
+        oplist = parseOperatorList(t)
+    assert t.first() == "COMMA"
+    t.pop()
+    block = parseBlock(t)
+    assert t.first() == "DONE" and t.second() == "DOT"
+    t.pop(); t.pop()
+    return ForStatement(new_id, oplist, block)
 
 def parseIfStatement(t):
     expr = parseExpression(t)
@@ -471,9 +510,14 @@ Let x be +(x,1).
 Print x.
 Done."""
 
+test_snippet_for = """
+For i in list x,
+Print i.
+Done."""
+
 test_snippet4="Let x be -(0,1)."
 
-token_stream = Lexer().tokenize(test_snippet_if)
+token_stream = Lexer().tokenize(test_snippet_for)
 token_stream.print()
 
 
