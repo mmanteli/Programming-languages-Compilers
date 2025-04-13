@@ -418,8 +418,7 @@ def parseForStatement(t):
 
 def parseIfStatement(t):
     expr = parseExpression(t)
-    print(f'Extracted expression {expr.printout()}')
-    t.print()
+    if debug: print(f'Extracted expression {expr.printout()}')
     assert t.first() == "IS" and t.second() == "TRUE", f'In if statement but "is true" not found. First = {t.first()}, second = {t.second()}'
     t.pop()
     t.pop()
@@ -428,12 +427,13 @@ def parseIfStatement(t):
     assert t.first() == "DONE" and t.second() == "DOT", f'If statement not ending in DONE., first = {t.first()}, second = {t.second()}.'
     t.pop()
     t.pop()
+    if debug: print("Returning new IfStatment")
     return IfStatement(expr, block)
 
 def parseWhileStatement(t):
+    if debug: print("In parseWhileStatement")
     expr = parseExpression(t)
-    print(f'Extracted expression {expr.printout()}')
-    t.print()
+    if debug: print(f'Extracted expression {expr.printout()}')
     assert t.first() == "IS" and t.second() == "TRUE", f'In if statement but "is true" not found. First = {t.first()}, second = {t.second()}'
     t.pop()
     t.pop()
@@ -442,6 +442,7 @@ def parseWhileStatement(t):
     assert t.first() == "DONE" and t.second() == "DOT", f'If statement not ending in DONE., first = {t.first()}, second = {t.second()}.'
     t.pop()
     t.pop()
+    if debug: print("Returning new WhileStatement")
     return WhileStatement(expr, block)
 
 def parseDefinitionStatement(t):
