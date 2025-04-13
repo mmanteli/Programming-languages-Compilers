@@ -125,7 +125,6 @@ Done.
                        | <loopstatement>
                        | <ifstatement>
                        | <functioncallstatement>
-                       | <returnstatement>
 
 <assignmentstatement> ::= "Let" <identifier> "be" <expression> "."
 <printstatement> ::= "Print" <operatorlist> "."
