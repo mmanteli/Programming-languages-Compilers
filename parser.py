@@ -36,7 +36,8 @@ class Value:
     def printout(self):
         return self.val
     def translate(self):
-        return self.pythontype(self.val)
+        #return self.pythontype(self.val)  # TODO, this causes crash in printing block
+        return self.val
     
 class ExpressionTail:
     def __init__(self, oper, term, tail):
@@ -111,6 +112,33 @@ class OperatorCommalist:
             return f'{[i.translate() for i in self.values]}'
         else:
             return f'{self.operator.join([i.translate() for i in self.values])}'
+        
+class IfStatement:
+    def __init__(self, expr, block):
+        assert isinstance(expr, Expression)
+        self.expr = expr
+        self.block = block
+    def printout(self):
+        return f"""If {self.expr.printout()} is true,
+        {[i.printout() for i in self.block]}
+Done."""
+    def translate(self):
+        return f"""if {self.expr.translate()}:
+        {[i.translate() for i in self.block]}"""
+
+class WhileStatement:
+    def __init__(self, expr, block):
+        assert isinstance(expr, Expression)
+        self.expr = expr
+        self.block = block
+    def printout(self):
+        return f"""While {self.expr.printout()} is true,
+        {[i.printout() for i in self.block]}
+Done."""
+    def translate(self):
+        return f"""While {self.expr.translate()}:
+        {[i.translate() for i in self.block]}"""
+
 
 class FunctionCall:
     def __init__(self, name, params):
@@ -313,7 +341,6 @@ def parseExecutionStatement(t):
                             | <loopstatement>
                             | <ifstatement>
                             | <functioncallstatement>
-                            | <returnstatement>
     '''
     if debug: print(f"parsing an Execution Statement, top of stream is {t.first()}")
     if t.first() == "LET":
@@ -322,11 +349,61 @@ def parseExecutionStatement(t):
     elif t.first() == "PRINT":
         t.pop()
         return parsePrintStmt(t)
+    elif t.first() == "WHILE":
+        t.pop()
+        return parseWhileStatement(t)
+    elif t.first() == "FOR":
+        pass
+    elif t.first() == "IF":
+        t.pop()
+        return parseIfStatement(t)
     elif t.first() == "MODIFY":
         t.pop()
         return parseFunctionCall(t)
     else:
         raise SyntaxError(f"I do not know what I'm doing")
+    
+def parseBlock(t):
+    block = []
+    while t.first() not in ["RETURN", "DONE"]:
+        if token_stream.first == "FUNCTION":
+            token_stream.pop()
+            stmt = parseDefinitionStatement(token_stream)
+        else:
+            if debug: print(f'Parsing Execution inside Function definition, top of stream is {t.first()}')
+            stmt = parseExecutionStatement(token_stream)
+        if debug: print(f'appending inside function {stmt.printout()}')
+        block.append(stmt)
+        if debug: print(f'Appended, now stream first and second are {t.first()}, {t.second()}')
+    return block
+
+def parseIfStatement(t):
+    expr = parseExpression(t)
+    print(f'Extracted expression {expr.printout()}')
+    t.print()
+    assert t.first() == "IS" and t.second() == "TRUE", f'In if statement but "is true" not found. First = {t.first()}, second = {t.second()}'
+    t.pop()
+    t.pop()
+    t.pop() # COMMA
+    block = parseBlock(t)
+    assert t.first() == "DONE" and t.second() == "DOT", f'If statement not ending in DONE., first = {t.first()}, second = {t.second()}.'
+    t.pop()
+    t.pop()
+    return IfStatement(expr, block)
+
+def parseWhileStatement(t):
+    expr = parseExpression(t)
+    print(f'Extracted expression {expr.printout()}')
+    t.print()
+    assert t.first() == "IS" and t.second() == "TRUE", f'In if statement but "is true" not found. First = {t.first()}, second = {t.second()}'
+    t.pop()
+    t.pop()
+    t.pop() # COMMA
+    block = parseBlock(t)
+    assert t.first() == "DONE" and t.second() == "DOT", f'If statement not ending in DONE., first = {t.first()}, second = {t.second()}.'
+    t.pop()
+    t.pop()
+    return WhileStatement(expr, block)
 
 def parseDefinitionStatement(t):
     '''
@@ -339,20 +416,10 @@ def parseDefinitionStatement(t):
     t.pop()
     t.pop()
     opers = parseOperatorList(t)
-    block = []
     assert t.first() == "COMMA"
     t.pop()
-    while t.first() not in ["RETURN", "DONE"]:
-        if token_stream.first == "FUNCTION":
-            token_stream.pop()
-            stmt = parseDefinitionStatement(token_stream)
-        else:
-            if debug: print(f'Parsing Execution inside Function definition, top of stream is {t.first()}')
-            stmt = parseExecutionStatement(token_stream)
-        if debug: print(f'appending inside function {stmt.printout()}')
-        block.append(stmt)
-        if debug: print(f'Appended, now stream first and second are {t.first()}, {t.second()}')
-    if t.first() == "RETURN":
+    block = parseBlock(t)
+    if t.first() == "RETURN":   # we have return value
         t.pop() # take return away
         return_value = parseOperatorList(t)
         t.pop(); t.pop(); t.pop()# take away dot and Done .
@@ -397,9 +464,16 @@ Let x be -(1,2).
 Print x.
 """
 
+test_snippet_if = """
+Let x be 1.
+If x > 1 is true,
+Let x be +(x,1).
+Print x.
+Done."""
+
 test_snippet4="Let x be -(0,1)."
 
-token_stream = Lexer().tokenize(test_snippet2)
+token_stream = Lexer().tokenize(test_snippet_if)
 token_stream.print()
 
 
