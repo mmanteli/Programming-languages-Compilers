@@ -4,7 +4,7 @@ This grammar is inspired by Toki Pona, a conlang by Sonja Lang. Toki Pona featur
 on the source, 120-140 words, and the main philosophy of the language is simplicity, in
 pronounciation, vocab, and grammar. 
 
-See [this reddit post for a cheat-sheet](https://www.reddit.com/media?url=https%3A%2F%2Fpreview.redd.it%2F1ofg1vaukc941.png%3Fwidth%3D2481%26format%3Dpng%26auto%3Dwebp%26s%3D13b7f8806cd887953fb91bacb86ab5fb589836ea).
+See [a toki pona cheat-sheet](https://jansa-tp.github.io/tpcheatsheet/Toki%20Pona%20Cheat%20Sheet%20v2.pdf)
 
 ## Basic sentence structure:
 
