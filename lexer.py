@@ -59,7 +59,7 @@ class Lexer:
             'STRING':      r'\"([^"\\]|\\.)*\"', 
             'IDENTIFIER':  r'[a-zA-Z_][a-zA-Z0-9_]*',
             'WHITESPACE':  r'[ \t\n]+',  # ignored
-            'COMMENT':     r'\¤.*', # not yet in grammar
+            'COMMENT':     r'\#.*', # not yet in grammar
         }
 
         self.TOKEN_TYPES = {

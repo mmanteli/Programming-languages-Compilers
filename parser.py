@@ -120,7 +120,10 @@ def printblock(block, translation=False):
         func = lambda x: x.printout()
     return_str = ""
     for b in block:
-        return_str+="\t"+str(func(b))
+        if translation:
+            return_str+="\t"+str(func(b)) 
+        else:
+            return_str+=str(func(b))
     return return_str
 
 class IfStatement:
@@ -313,7 +316,8 @@ def parseCommaList(t):
             return_values.append(Value(new_val["value"], typ=new_val["type"]))
             if debug: print(f'Value {return_values[-1].printout()} added to parsing list')
         else: raise SyntaxError(f"Only literal or identifier inside (...), found {t.first()}")
-        assert t.first() in ["COMMA", 'RPAREN'], "This error should not happen, we checked this in the lexer"
+        #print([i.printout() for i in return_values])
+        assert t.first() in ["COMMA", 'RPAREN'], f"no comma or right parenthesis found, t is {t.print()}"
         if t.first() in ["COMMA"]:
             t.pop()
     t.pop() # remove rparen
@@ -520,33 +524,38 @@ Print i.
 Done."""
 
 test_snippet_all ="""
-    Function add_one acts on x,
-    Return +(x,1).
-    Done.
+Function add_one acts on x,
+Return +(x,1).
+Done.
 
-    Let x be 5.
-    Let y be and(x,1,1).
-    Let z be "hiya".
+Let x be 5.
+Let y be and(x,1,1).
+Let z be "hiya".
 
-    For i in list y,
-        If i > 1 is true,
-            Print i.
-        Done.
-        If i < 1 is true,
-            Modify i with Function add_one.
-        Done.
-    Done.
+For i in list y,
+If i > 1 is true,
+Print i.
+Done.
+If i == 1 is true,
+Modify i with Function add_one.
+Done.
+Done.
 
-    Let x be 1.
-    While x == 1 is true,
-    Let x be +(x,1).
-    Done.
-    """
+Let x be 1.
+While x == 1 is true,
+Let x be +(x,1).
+Done.
+"""
+
+test_snippet_if_again = """
+If ¤(x>1, x==1),
+Print x.
+Done."""
 
 test_snippet4="Let x be -(0,1)."
 
 token_stream = Lexer().tokenize(test_snippet_all)
-token_stream.print()
+#token_stream.print()
 
 
 StatementList= []

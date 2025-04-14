@@ -132,7 +132,6 @@ Done.
 <loopstatement> ::= "For" <identifier> "in list" <operatorlist|identifier> "," <statementlist> "Done."
 <ifstatement> ::= "If" <expression> "is true," <statementlist> "Done."
 <functioncallstatement> ::= "Modify" <operatorlist> "with function" <identifier> "."
-<returnstatement> ::= "return" <returnvalues> "."
 
 <expression> ::= <term> <expression_tail>
 <term> ::= <functioncallstatement>
