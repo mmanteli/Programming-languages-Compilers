@@ -1,6 +1,6 @@
 from lexer import Lexer
 OPERANTS = ["IDENTIFIER","VAL", "MODIFY"]
-debug = True
+debug = False
 
 #----------------------ast trying----------------------#
 #import ast
@@ -113,6 +113,16 @@ class OperatorCommalist:
         else:
             return f'{self.operator.join([i.translate() for i in self.values])}'
         
+def printblock(block, translation=False):
+    if translation:
+        func = lambda x: x.translate()
+    else:
+        func = lambda x: x.printout()
+    return_str = ""
+    for b in block:
+        return_str+="\t"+str(func(b))
+    return return_str
+
 class IfStatement:
     def __init__(self, expr, block):
         assert isinstance(expr, Expression)
@@ -120,13 +130,11 @@ class IfStatement:
         self.block = block
     def printout(self):
         return f"""If {self.expr.printout()} is true,
-        {[i.printout() for i in self.block]}
-Done.
+{printblock(self.block)}Done.
 """
     def translate(self):
         return f"""if {self.expr.translate()}:
-        {[i.translate() for i in self.block]}
-"""
+{printblock(self.block, translation=True)}"""
 
 class WhileStatement:
     def __init__(self, expr, block):
@@ -135,13 +143,11 @@ class WhileStatement:
         self.block = block
     def printout(self):
         return f"""While {self.expr.printout()} is true,
-        {[i.printout() for i in self.block]}
-Done.
+{printblock(self.block)}Done.
 """
     def translate(self):
         return f"""While {self.expr.translate()}:
-        {[i.translate() for i in self.block]}
-"""
+{printblock(self.block, translation=True)}"""
 
 class ForStatement:
     def __init__(self, looper, loopee, block):
@@ -150,12 +156,11 @@ class ForStatement:
         self.block = block
     def printout(self):
         return f"""For {self.looper.printout()} in list {self.loopee.printout()},
-        {[i.printout() for i in self.block]}
-Done.
+{printblock(self.block)}Done.
 """
     def translate(self):
-        return f"""for {self.looper.translate()} in {self.loopee.translate()},
-        {[i.translate() for i in self.block]}
+        return f"""for {self.looper.translate()} in {self.loopee.translate()}:
+{printblock(self.block, translation=True)}
 """
         
 
@@ -165,9 +170,9 @@ class FunctionCall:
         self.name=name
         self.params=params
     def printout(self):
-        return f'Modify {self.params.printout()} with function {self.name.printout()}.\n'
+        return f'Modify {self.params.printout()} with function {self.name.printout()}.'
     def translate(self):
-        return f'{self.name.translate()}({self.params.translate()})\n'
+        return f'{self.name.translate()}({self.params.translate()})'
         
 
 class FunctionDefinition:
@@ -179,25 +184,23 @@ class FunctionDefinition:
     def printout(self):
         if self.return_values:
             return f"""Function {self.name.printout()} acts on {self.params.printout()},
-                    {[i.printout() for i in self.block]}
-                    Return {self.return_values.printout()}.
-                    Done.
-                    """
+{printblock(self.block)}{"Done." if len(self.block)>0 else ""}Return {self.return_values.printout()}.
+Done.
+"""
         else:
             return f"""Function {self.name.printout()} acts on {self.params.printout()},
-                    {[i.printout() for i in self.block]}
-                    Done.
-                    """
+{printblock(self.block)}Done.
+"""
     def translate(self):
         if self.return_values:
-            return f"""def {self.name.translate()}({self.params.translate()}):,
-                    {[i.translate() for i in self.block]}
-                    return {self.return_values.translate()}
-                    """
+            return f"""def {self.name.translate()}({self.params.translate()}):
+{printblock(self.block,translation=True)}
+return {self.return_values.translate()}
+"""
         else:
-            return f"""def {self.name.translate()}({self.params.translate()}):,
-                    {[i.translate() for i in self.block]}
-                    """
+            return f"""def {self.name.translate()}({self.params.translate()}):
+{printblock(self.block, translation=True)}
+"""
 
 
 def parseOperant(t):
@@ -516,9 +519,33 @@ For i in list x,
 Print i.
 Done."""
 
+test_snippet_all ="""
+    Function add_one acts on x,
+    Return +(x,1).
+    Done.
+
+    Let x be 5.
+    Let y be and(x,1,1).
+    Let z be "hiya".
+
+    For i in list y,
+        If i > 1 is true,
+            Print i.
+        Done.
+        If i < 1 is true,
+            Modify i with Function add_one.
+        Done.
+    Done.
+
+    Let x be 1.
+    While x == 1 is true,
+    Let x be +(x,1).
+    Done.
+    """
+
 test_snippet4="Let x be -(0,1)."
 
-token_stream = Lexer().tokenize(test_snippet_for)
+token_stream = Lexer().tokenize(test_snippet_all)
 token_stream.print()
 
 
