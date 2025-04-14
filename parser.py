@@ -48,9 +48,9 @@ class ExpressionTail:
         self.tail = tail
     def printout(self):
         if self.tail is None:
-            return f'{self.oper} {self.term.printout()}'
+            return f'{self.oper}{self.term.printout()}'
         else:
-            return f'{self.oper} {self.term.printout()}{self.tail.printout()}'
+            return f'{self.oper}{self.term.printout()}{self.tail.printout()}'
     def translate(self):
         if self.tail is None:
             if self.oper == "and":
@@ -71,14 +71,14 @@ class Expression:
         if self.tail is None:
             return f"{self.term.printout()}"
         else:
-            return f"{self.term.printout()} {self.tail.printout()}"
+            return f"{self.term.printout()}{self.tail.printout()}"
     def translate(self):
         if self.tail is None:
             return f"{self.term.translate()}"
         else:
             if self.tail.oper == "and":
                 return f'[{self.term.translate()}{self.tail.translate()}'
-            return f"{self.term.translate()} {self.tail.translate()}"
+            return f"{self.term.translate()}{self.tail.translate()}"
 
 class Assignment:
     def __init__(self, id_, val):
@@ -132,12 +132,9 @@ class IfStatement:
         self.expr = expr
         self.block = block
     def printout(self):
-        return f"""If {self.expr.printout()} is true,
-{printblock(self.block)}Done.
-"""
+        return f"If {self.expr.printout()} is true,\n{printblock(self.block)}\nDone.\n"
     def translate(self):
-        return f"""if {self.expr.translate()}:
-{printblock(self.block, translation=True)}"""
+        return f"if {self.expr.translate()}:\n\t{printblock(self.block, translation=True)}"
 
 class WhileStatement:
     def __init__(self, expr, block):
@@ -186,24 +183,14 @@ class FunctionDefinition:
         self.return_values = return_values
     def printout(self):
         if self.return_values:
-            return f"""Function {self.name.printout()} acts on {self.params.printout()},
-{printblock(self.block)}{"Done." if len(self.block)>0 else ""}Return {self.return_values.printout()}.
-Done.
-"""
+            return f'Function {self.name.printout()} acts on {self.params.printout()},{printblock(self.block)}{"Done." if len(self.block)>0 else ""}\nReturn {self.return_values.printout()}.\nDone.\n'
         else:
-            return f"""Function {self.name.printout()} acts on {self.params.printout()},
-{printblock(self.block)}Done.
-"""
+            return f"Function {self.name.printout()} acts on {self.params.printout()},{printblock(self.block)}\nDone.\n"
     def translate(self):
         if self.return_values:
-            return f"""def {self.name.translate()}({self.params.translate()}):
-{printblock(self.block,translation=True)}
-return {self.return_values.translate()}
-"""
+            return f'def {self.name.translate()}({self.params.translate()}):\t{printblock(self.block,translation=True)}\n\treturn {self.return_values.translate()}\n'
         else:
-            return f"""def {self.name.translate()}({self.params.translate()}):
-{printblock(self.block, translation=True)}
-"""
+            return f'def {self.name.translate()}({self.params.translate()}):\t{printblock(self.block, translation=True)}\n'
 
 
 def parseOperant(t):
