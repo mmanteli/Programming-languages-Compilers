@@ -7,7 +7,7 @@ tp_script = f.read()
 print("--------------Input---------------")
 print(tp_script)
 
-parser = Parser()
+parser = Parser(debug=True)
 parser.parse(tp_script)
 
 prg = parser.translate_program(return_prg=True)

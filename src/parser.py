@@ -132,7 +132,7 @@ class Parser:
 
     def parseCommaList(self, t):
         if self.debug:
-            print("Now in parseCommaList()")
+            print(f"Now in parseCommaList(), with token {t.first()}")
         assert t.first() == 'LPAREN', f"LPAREN missing on line {t.line()}: {t.get_row(t.line())}."
         t.pop()
         return_values = []
@@ -159,12 +159,17 @@ class Parser:
             print(f"in parseOperatorList(), first = {t.first()}")
         if t.first() in self.OPERANTS and t.second() != "OPER":
             return self.parseOperant(t)
-        elif t.first() == "OPER":
+        elif t.first() == "OPER" and t.second() == "LPAREN":
             op = t.pop()
+            if self.debug: print(f"Found operator {op}, now parsing Commalist")
             return OperatorCommalist(op["value"], self.parseCommaList(t))
+        #elif t.first() == "OPER" and t.second() == "OPER":
+        #    if self.debug: print("Combined format")
+        #    return OperatorList()
         elif t.first() in self.OPERANTS and t.second() == "OPER":
             new_id = t.pop()
-            return Identifier(new_id["value"]), self.parseOperatorList(t)
+            op = t.pop()
+            return OperatorList(Identifier(new_id["value"]), op["value"], self.parseOperatorList(t))
 
     def parsePrintStmt(self, t):
         if self.debug:
@@ -375,6 +380,20 @@ class OperatorCommalist:
             return f'{[i.translate() for i in self.values]}'
         else:
             return f'{self.operator.join([i.translate() for i in self.values])}'  
+
+class OperatorList:
+    def __init__(self, value1, operator, value2):
+        assert type(value1) in [Identifier, Value]
+        self.value1 = value1
+        self.operator = operator
+        self.value2 = value2
+    def printout(self):
+        return f'{self.value1} {self.operator} {self.value2.printout()})'
+    def translate(self):
+        if self.operator == "and":
+            return f'{self.value1.translate()}, {self.value2.translate()}'
+        else:
+            return f'{self.operator.join([self.value1.translate(), self.value2.translate()])}'  
 
 class Block:
     def __init__(self, block):
