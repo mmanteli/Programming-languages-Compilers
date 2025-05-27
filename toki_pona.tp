@@ -1,0 +1,58 @@
+# Assignments
+Print "Assignment".
+Let x be 1.
+Let y be 2.
+Print "x+y=".
+Print +(x,y).
+#Print "x+y=" and +(x,y).
+
+# Negative numbers
+Let z be -(0,1).
+Print z.
+
+# Lists
+Let l be and(z,1,1).
+Print l.
+
+# If statements
+Print "If statements".
+If x > 1 is true,
+Print x.
+Print "x was larger than 1".
+Done.
+If x == 1 is true,
+Let x be +(x,1).
+Print "x equalled 1 and was increased to 2".
+Print x.
+Done.
+
+# For loop 
+For i in list l,
+Print i.
+Done.
+
+# While
+Print "x before loop".
+Print x.
+While x < 10 is true,
+Let x be +(x,1).
+Done.
+Print "x after loop".
+Print x.
+
+# Function definition
+
+Function add_one acts on x,
+Let x be +(x,1).
+Done.
+
+# Function call
+Let k be 1.
+Print "before function".
+Print k.
+If k == 1 is true,
+Modify k with Function add_one.
+Print "Modification was done".
+Done.
+Print "after function call".
+Print k.

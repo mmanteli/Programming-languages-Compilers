@@ -1,4 +1,7 @@
-from lexer import Lexer
+try:
+    from src.lexer import Lexer
+except ImportError:
+    from lexer import Lexer
 
 class Parser:
     def __init__(self, debug=False):
@@ -28,14 +31,20 @@ class Parser:
         return self.program
 
     def print_program(self):
-        StatementList = parser.get_ast()
+        StatementList = self.get_ast()
         for p in StatementList:
             print(p.printout(), end="")
 
-    def translate_program(self):
-        StatementList = parser.get_ast()
+    def translate_program(self, return_prg =True):
+        StatementList = self.get_ast()
+        result = ""
         for p in StatementList:
-            print(p.translate(), end="")
+            if return_prg:
+                result += p.translate()
+            else:
+                print(p.translate(), end="")
+        if return_prg:
+            return result
         
 
     def parseOperant(self, t):
@@ -376,13 +385,13 @@ class Block:
         func = lambda x: x.printout()
         return_str = ""
         for b in self.block:
-            return_str += str(func(b))
+            return_str += str(func(b))+"\n"
         return return_str
     def translate(self):
         func = lambda x: x.translate()
         return_str = ""
         for b in self.block:
-            return_str += "\t" + str(func(b))
+            return_str += "\t" + str(func(b))+"\n"
         return return_str
 
     
@@ -395,7 +404,7 @@ class IfStatement:
     def printout(self):
         return f"If {self.expr.printout()} is true,\n{self.block.printout()}Done.\n"
     def translate(self):
-        return f"if {self.expr.translate()}:\n{self.block.translate()}"
+        return f"if {self.expr.translate()}:\n{self.block.translate()}\n"
 
 class WhileStatement:
     def __init__(self, expr, block):
@@ -404,11 +413,11 @@ class WhileStatement:
         self.block = Block(block)
     def printout(self):
         return f"""While {self.expr.printout()} is true,
-{self.block.printout()}Done.
+{self.block.printout()}Done.\n
 """
     def translate(self):
-        return f"""While {self.expr.translate()}:
-{self.block.translate()}"""
+        return f"""while {self.expr.translate()}:
+{self.block.translate()}\n"""
 
 class ForStatement:
     def __init__(self, looper, loopee, block):
