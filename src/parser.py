@@ -442,7 +442,7 @@ class FunctionCall:
     def printout(self):
         return f'Modify {self.params.printout()} with function {self.name.printout()}.'
     def translate(self):
-        return f'{self.name.translate()}({self.params.translate()})'
+        return f'{self.params.translate()} = {self.name.translate()}({self.params.translate()})'
         
 
 class FunctionDefinition:
@@ -458,9 +458,9 @@ class FunctionDefinition:
             return f"Function {self.name.printout()} acts on {self.params.printout()},{self.block.printout()}Done.\n"
     def translate(self):
         if self.return_values:
-            return f'def {self.name.translate()}({self.params.translate()}):{self.block.translate()}\n\treturn {self.return_values.translate()}\n'
+            return f'def {self.name.translate()}({self.params.translate()}):\n{self.block.translate()}\n\treturn {self.return_values.translate()}\n'
         else:
-            return f'def {self.name.translate()}({self.params.translate()}):{self.block.translate()}\n'
+            return f'def {self.name.translate()}({self.params.translate()}):\n{self.block.translate()}\n'
 
 
 

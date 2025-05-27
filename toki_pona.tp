@@ -43,7 +43,7 @@ Print x.
 # Function definition
 
 Function add_one acts on x,
-Let x be +(x,1).
+Return +(x,1).
 Done.
 
 # Function call
