@@ -163,13 +163,12 @@ class Parser:
             op = t.pop()
             if self.debug: print(f"Found operator {op}, now parsing Commalist")
             return OperatorCommalist(op["value"], self.parseCommaList(t))
-        #elif t.first() == "OPER" and t.second() == "OPER":
-        #    if self.debug: print("Combined format")
-        #    return OperatorList()
         elif t.first() in self.OPERANTS and t.second() == "OPER":
             new_id = t.pop()
             op = t.pop()
             return OperatorList(Identifier(new_id["value"]), op["value"], self.parseOperatorList(t))
+        else:
+            raise SyntaxError("some message todo")
 
     def parsePrintStmt(self, t):
         if self.debug:
