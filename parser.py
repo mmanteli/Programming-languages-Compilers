@@ -56,18 +56,18 @@ class Parser:
                 print(f"In parseOperant(), Value found {t.first()}")
             val = t.pop()
             return Value(val["value"], typ=val["type"])
-        raise SyntaxError("Should not reach this, parseOperant with no operant in sight.")
+        raise SyntaxError(f"Parsing operant with no operant in sight on line {t.line()}: {t.get_row(t.line())}")
 
     def parseFunctionCall(self, t):
         if self.debug:
             print("Now in parseFuntionCall()")
         params = self.parseOperatorList(t)
-        assert t.first() == "WITH"
+        assert t.first() == "WITH", f"WITH missing on line {t.line()}: {t.get_row(t.line())}"
         if t.second() == "FUNCTION":
             t.pop()
         t.pop()
         function_name = self.parseOperant(t)
-        assert t.first() == "DOT"
+        assert t.first() == "DOT", f"DOT missing on line {t.line()}: {t.get_row(t.line())}"
         t.pop()
         return FunctionCall(function_name, params)
 
@@ -95,7 +95,7 @@ class Parser:
                 return self.parseOperatorList(t)
             elif t.first() in self.OPERANTS:
                 return self.parseOperant(t)
-            raise SyntaxError("In parseTerm() without a term.")
+            raise SyntaxError(f"No term found on {t.line()}: {t.get_row(t.line())}")
 
         if self.debug:
             print(f"Now in parseExpression, first token = {t.first()}, second token = {t.second()}")
@@ -110,21 +110,21 @@ class Parser:
     def parseAssignment(self, t):
         if self.debug:
             print("in parseAssignment()")
-        assert t.first() == "IDENTIFIER"
+        assert t.first() == "IDENTIFIER", f"IDENTIFIER missing on line {t.line()}: {t.get_row(t.line())}"
         id_ = self.parseOperant(t)
         if self.debug:
             print(f"Identifier {id_.printout()} parsed.")
-        assert t.first() == "BE"
+        assert t.first() == "BE", f"BE missing on line {t.line()}: {t.get_row(t.line())}"
         t.pop()
         val = self.parseExpression(t)
-        assert t.first() == "DOT", f"Expected DOT, got {t.first()}"
+        assert t.first() == "DOT", f"Expected DOT, got {t.first()} on {t.line()}: {t.get_row(t.line())}."
         t.pop()
         return Assignment(id_, val)
 
     def parseCommaList(self, t):
         if self.debug:
             print("Now in parseCommaList()")
-        assert t.first() == 'LPAREN'
+        assert t.first() == 'LPAREN', f"LPAREN missing on line {t.line()}: {t.get_row(t.line())}."
         t.pop()
         return_values = []
         while t.first() != 'RPAREN':
@@ -139,7 +139,7 @@ class Parser:
                 if self.debug:
                     print(f'Value {return_values[-1].printout()} added to parsing list')
             else:
-                raise SyntaxError(f"Only literal or identifier inside (...), found {t.first()}")
+                raise SyntaxError(f"Only literal or identifier inside (...), found {t.first()} on line {t.line()}: {t.get_row(t.line())}")
             if t.first() in ["COMMA"]:
                 t.pop()
         t.pop()
@@ -187,21 +187,24 @@ class Parser:
             t.pop()
             return self.parseFunctionCall(t)
         else:
-            raise SyntaxError("Unknown execution statement")
+            raise SyntaxError(f"Unknown execution statement on line {t.line()}: {t.get_row(t.line())}")
 
     def parseBlock(self, t):
         block = []
-        while t.first() not in ["RETURN", "DONE"]:
-            if t.first() == "FUNCTION":
-                t.pop()
-                stmt = self.parseDefinitionStatement(t)
-            else:
+        try:
+            while t.first() not in ["RETURN", "DONE"]:
+                if t.first() == "FUNCTION":
+                    t.pop()
+                    stmt = self.parseDefinitionStatement(t)
+                else:
+                    if self.debug:
+                        print(f'Parsing Execution inside Function definition, top of stream is {t.first()}')
+                    stmt = self.parseExecutionStatement(t)
                 if self.debug:
-                    print(f'Parsing Execution inside Function definition, top of stream is {t.first()}')
-                stmt = self.parseExecutionStatement(t)
-            if self.debug:
-                print(f'appending inside function {stmt.printout()}')
-            block.append(stmt)
+                    print(f'appending inside function {stmt.printout()}')
+                block.append(stmt)
+        except IndexError:
+            raise SyntaxError(f"Runaway argument at the end of program, 'Done.' missing on row {t.num_rows()}: {t.get_row(-1)}")
         return block
 
     def parseForStatement(self, t):
@@ -209,16 +212,16 @@ class Parser:
             print("In parseForStatement")
         new_id = self.parseOperant(t)
         assert isinstance(new_id, Identifier)
-        assert t.first() == "IN" and t.second() == "LIST"
+        assert t.first() == "IN" and t.second() == "LIST", f"IN LIST missing on line {t.line()}: {t.get_row(t.line())}"
         t.pop(); t.pop()
         if t.first() == "IDENTIFIER":
             oplist = self.parseOperant(t)
         else:
             oplist = self.parseOperatorList(t)
-        assert t.first() == "COMMA"
+        assert t.first() == "COMMA", f"COMMA missing on line {t.line()}: {t.get_row(t.line())}"
         t.pop()
         block = self.parseBlock(t)
-        assert t.first() == "DONE" and t.second() == "DOT"
+        assert t.first() == "DONE" and t.second() == "DOT", f"DONE and '.' missing on line {t.line()}: {t.get_row(t.line())}"
         t.pop(); t.pop()
         return ForStatement(new_id, oplist, block)
 
@@ -226,10 +229,10 @@ class Parser:
         expr = self.parseExpression(t)
         if self.debug:
             print(f'Extracted expression {expr.printout()}')
-        assert t.first() == "IS" and t.second() == "TRUE"
+        assert t.first() == "IS" and t.second() == "TRUE", f"IS TRUE missing on line {t.line()}: {t.get_row(t.line())}"
         t.pop(); t.pop(); t.pop()
         block = self.parseBlock(t)
-        assert t.first() == "DONE" and t.second() == "DOT"
+        assert t.first() == "DONE" and t.second() == "DOT", f"DONE. missing on line {t.line()}: {t.get_row(t.line())}"
         t.pop(); t.pop()
         return IfStatement(expr, block)
 
@@ -239,20 +242,20 @@ class Parser:
         expr = self.parseExpression(t)
         if self.debug:
             print(f'Extracted expression {expr.printout()}')
-        assert t.first() == "IS" and t.second() == "TRUE"
+        assert t.first() == "IS" and t.second() == "TRUE", f"IS TRUE missing on line {t.line()}: {t.get_row(t.line())}"
         t.pop(); t.pop(); t.pop()
         block = self.parseBlock(t)
-        assert t.first() == "DONE" and t.second() == "DOT"
+        assert t.first() == "DONE" and t.second() == "DOT", f"DONE. missing on line {t.line()}: {t.get_row(t.line())}"
         t.pop(); t.pop()
         return WhileStatement(expr, block)
 
     def parseDefinitionStatement(self, t):
-        assert t.first() == "IDENTIFIER"
+        assert t.first() == "IDENTIFIER", f"Non-identifier found on line {t.line()}: {t.get_row(t.line())}"
         new_id = Identifier(t.pop()["value"])
-        assert t.first() == "ACTS" and t.second() == "ON"
+        assert t.first() == "ACTS" and t.second() == "ON", f"ACTS ON missing on line {t.line()}: {t.get_row(t.line())}"
         t.pop(); t.pop()
         opers = self.parseOperatorList(t)
-        assert t.first() == "COMMA"
+        assert t.first() == "COMMA", f"COMMA missing on line {t.line()}: {t.get_row(t.line())}"
         t.pop()
         block = self.parseBlock(t)
         if t.first() == "RETURN":
@@ -482,16 +485,16 @@ if __name__=="__main__":
     """
     test_snippet_if = """
     Let x be 1.
-    If x > 1 is true,
+    If x > 1 is true.
     Let x be +(x,1).
-    Print x.
-    Done.
+    Print x.=
     Print "Done!".
+    Done.
     """
 
     parser = Parser()
-    parser.parse(test_snippet_all)
+    parser.parse(test_snippet_if)
 
     parser.print_program()
-    print("---------------")
-    parser.translate_program()
+    #print("---------------")
+    #parser.translate_program()

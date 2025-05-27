@@ -1,12 +1,19 @@
 import re
 
 class TokenStream:
-    def __init__(self, t):
+    def __init__(self, t, l):
         self.stream = t
+        self.lines = l
     def first(self):
         return self.stream[0]["token"]
     def second(self):
         return self.stream[1]["token"]
+    def line(self):
+        return self.stream[0]["line"]
+    def get_row(self, r):
+        return self.lines[r]
+    def num_rows(self):
+        return len(self.lines)
     def pop(self):
         val = self.stream.pop(0)
         return val
@@ -96,6 +103,7 @@ class Lexer:
         parenthesis_check = 0
         parenthesis_location = []
         tokens_to_forward = []
+        lines = snippet.split("\n")
 
         # loop over segments that match rules (everything should match some rule!)
         for i in self.matcher.finditer(snippet):
@@ -104,13 +112,13 @@ class Lexer:
 
             # check for errors
             # unrecognized segment was found:
-            if not location[0] == last_index_covered: raise SyntaxError(f'Line {line_in_code}: segment "{snippet[last_index_covered:location[0]]}" not recognized.')
+            if not location[0] == last_index_covered: raise SyntaxError(f'Segment "{snippet[last_index_covered:location[0]]}" not recognized on line {line_in_code}:  {lines[line_in_code]} ')
             last_index_covered = location[1]
 
             # period or comma missing after \n (not in string)
             if "\n" in matched_segment:
                 if tokens_to_forward != []:
-                    if not tokens_to_forward[-1]["token"] in ["DOT", "COMMA"]: raise SyntaxError(f'Line {line_in_code} missing "." or ",".')
+                    if not tokens_to_forward[-1]["token"] in ["DOT", "COMMA"]: raise SyntaxError(f'Missing "." or "," on line {line_in_code}: {lines[line_in_code]} .')
             # parenthesis error
             if token in ["LPAREN", "RPAREN"]:
                 if token == "LPAREN":
@@ -118,22 +126,21 @@ class Lexer:
                     parenthesis_location.append(line_in_code)
                 else:
                     parenthesis_check -=1
-                    if not parenthesis_check>=0: raise SyntaxError(f'Line {line_in_code}, unclosed parenthesis ")".')
+                    if not parenthesis_check>=0: raise SyntaxError(f'Unclosed parenthesis on line {line_in_code}: {lines[line_in_code]} ')
                     parenthesis_location.pop(-1)
             if token in ["DOT"]:
-                if not parenthesis_check == 0: raise SyntaxError(f'Line {line_in_code} missing parenthesis ")"')
+                if not parenthesis_check == 0: raise SyntaxError(f'Unclosed parenthesis on line {line_in_code}: {lines[line_in_code]} ')
 
             # put token to return value if no errors are present
             if token not in ["WHITESPACE", "COMMENT"]:
                 tokens_to_forward.append(dict(token=token, type=token_rule_name, value=matched_segment, span=location, line=line_in_code))
-
             # move the line number for error reporting when needed
             if "\n" in matched_segment:
                 line_in_code += matched_segment.count("\n")
 
         if not parenthesis_check == 0: raise SyntaxError(f'Unclosed parenthesis on line(s) {",".join([str(i) for i in parenthesis_location])}.')
 
-        return TokenStream(tokens_to_forward)
+        return TokenStream(tokens_to_forward, lines)
 
 if __name__=="__main__":
     lexer = Lexer()
