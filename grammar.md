@@ -36,73 +36,18 @@ With more than one modifier ``pi`` can be used. It can also be thought that ``pi
 
 ``tempo pini la mi lape`` In the context of past, I sleep == I slept.
 
+In the implementation, keywords are in English for ease. 
 
-# Thinking part
 
-what features we want?
+# Features
 
-- simplicity: negation does a lot, but only applies to keywords. e.g. subtraction is negation+summing
-- numeric: only binary accepted
-- basic types: int, float, string/char, array, bool, dict, None
-    - boolean: Not needed, really? you can make xor with + and modulo, and that with negation is enough
+Just a couple highlights:
 
-keywords
-- summation: is multiplication just summation many times
-    - same for exponents :D
-- if, then else
-    - as toki pona does not have the context of "else", thus we must check if (condition) then ... done if negative (contidition) then ... done
-    - <id> la <expression> pini
-    - <id> ala la <expression> pini
-- assignment: nimi value li variable 
-- loops: nasin <id> la, <block> pini!
+- negative numbers only as 0-1 = -1.
+- "Polish notation" for operations, i.e. 3+4 == +(3,4).
+- Functions can only modify arguments, all arguments are returned.
+- Lists are represented as "x and y and z" and can be also noted in the Polish way and(x,y,z).
 
-```python
-def add_one(x):
-    return x+1
-
-x = 5
-y = [x,1,1]
-for i in y:
-    if i > 2:
-        print(i)
-    else:
-        x = add_one(x)
-print(x)
-```
-
-```
-ilo add_one li pali e x,
-    pana +(x,1).    # or x+1
-pini!
-
-nimi 101 li x.
-nimi en(x,1,1) li y.   # or x en 1 en 1
-i lon nasin y la,
-    i pi sama mute 10 la,
-        o toki i.
-    pini.
-    i pi sama mute ala 10 la,
-        o ante x kepeken add_one.
-    pini.
-pini.
-```
-```
-funtion add_one acts on x,
-    return +(x,1).
-Done.
-
-Let x be 5.
-Let y be (x,1,1)
-i in list,
-    if i > 0:
-        print i.
-    Done.
-    if i<=0:
-        Modify i with function add_one.
-    Done.
-Done.
-
-```
 
 # Grammar
 
@@ -158,11 +103,9 @@ Done.
 ```
 
 
-## Ideas
+## AI disclaimer
 
-    #<expressionlist> ::= <expression> "and" <expressionslist>
-    #                   | <expression>
-
+I used ChatGPT to make a list of tokens of the lexer etc. things where a long dictionaries had to be created.
 
 
 

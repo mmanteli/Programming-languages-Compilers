@@ -1,58 +1,70 @@
 # Assignments
-Print "Assignment".
+Print "Trying out Assignment".
 Let x be 1.
 Let y be 2.
-Print "x+y=".
-Print +(x,y).
-#Print "x+y=" and +(x,y).
+Print "x=" and x.
+Print "y=" and y.
+Print "x+y=" and +(x,y).
 
 # Negative numbers
+Print "Trying out a Negative number".
 Let z be -(0,1).
-Print z.
+Print "z=" and z.
 
 # Lists
+Print "Making a list with variable z in the beginning".
 Let l be and(z,1,1).
 Print l.
 
 # If statements
 Print "If statements".
 If x > 1 is true,
-Print x.
 Print "x was larger than 1".
 Done.
 If x == 1 is true,
 Let x be +(x,1).
 Print "x equalled 1 and was increased to 2".
-Print x.
+Print "x=" and x.
 Done.
 
 # For loop 
+Print "Looping over the list" and l.
+Let index be 0.
 For i in list l,
-Print i.
+Print "List element at index" and index and "is" and i.
+Let index be +(index,1).
 Done.
 
 # While
+Print "Increasing the value of x in a while loop up to 10".
 Print "x before loop".
 Print x.
 While x < 10 is true,
 Let x be +(x,1).
 Done.
-Print "x after loop".
-Print x.
+Print "x after loop:" and x.
 
 # Function definition
 
+Print "Defining a function".
 Function add_one acts on x,
 Return +(x,1).
 Done.
 
 # Function call
 Let k be 1.
-Print "before function".
-Print k.
+Print "before function, k =" and k.
 If k == 1 is true,
 Modify k with Function add_one.
-Print "Modification was done".
+Print "k was modified with funtion".
 Done.
-Print "after function call".
-Print k.
+Print "after function call k =" and k.
+
+
+# This does not work (yet) because of indentation
+#Print "Using multiple together to test indentation".
+#If k==2 is true,
+#If x==10 is true,
+#Print k and x.
+#Done.
+#Done.
