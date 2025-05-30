@@ -293,9 +293,9 @@ class Identifier:
 
 class Value:
     def __init__(self, val, typ="STRING"):
-        value_map = {"STRING": str,
-             "INT": int,
-             "FLOAT": float,
+        value_map = {"STRING": "str",
+             "INT": "int",
+             "FLOAT": "float",
              }
         self.val = val
         self.type = typ
@@ -303,7 +303,7 @@ class Value:
     def printout(self):
         return self.val
     def translate(self):
-        #return self.pythontype(self.val)  # TODO, this causes crash in printing block
+        #return f"{self.pythontype}({self.val})"  # TODO, this causes crash in printing block
         return self.val
     
 class ExpressionTail:
@@ -376,7 +376,7 @@ class OperatorCommalist:
         return f'{self.operator}({",".join([i.printout() for i in self.values])})'
     def translate(self):
         if self.operator == "and":
-            return f'{[i.translate() for i in self.values]}'
+            return f'[{",".join([i.translate() for i in self.values])}]'
         else:
             return f'{self.operator.join([i.translate() for i in self.values])}'  
 
